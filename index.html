@@ -1,140 +1,323 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>шлюхов Казино</title>
-    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/chip.png" type="image/png">
+
+     <link rel="icon" href="https://example.com/path/to/casino-icon.png" type="image/png">
+    <title>Казино - Выбор игры</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0d6b2e 0%, #094a21 100%);
+            color: white;
+            text-align: center;
+            padding: 5%;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+            padding: 5%;
+        }
+
+        .header {
+            margin-bottom: 15%;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            margin-bottom: 5%;
+            color: gold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: clamp(1.2rem, 5vw, 1.8rem);
+            color: #ffd700;
+            margin-bottom: 10%;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .game-card {
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            border: 3px solid gold;
+            border-radius: 20px;
+            padding: 12% 8%;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .game-card:hover::before {
+            left: 100%;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            border-color: #ffd700;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+        }
+
+        .game-card:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .game-icon {
+            font-size: clamp(2.5rem, 12vw, 4rem);
+            margin-bottom: 8%;
+            display: block;
+        }
+
+        .game-title {
+            font-size: clamp(1.5rem, 6vw, 2.2rem);
+            font-weight: bold;
+            margin-bottom: 5%;
+            color: gold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .game-description {
+            font-size: clamp(0.9rem, 4vw, 1.1rem);
+            color: #e0e0e0;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+
+        .slot-card {
+            background: linear-gradient(145deg, rgba(192, 0, 0, 0.7), rgba(160, 0, 0, 0.5));
+        }
+
+        .durak-card {
+            background: linear-gradient(145deg, rgba(74, 144, 226, 0.7), rgba(53, 122, 189, 0.5));
+        }
+
+        .footer {
+            margin-top: 15%;
+            font-size: clamp(0.8rem, 3vw, 1rem);
+            color: #ccc;
+            opacity: 0.8;
+        }
+
+        /* Адаптив для планшетов */
+        @media (min-width: 768px) {
+            body {
+                padding: 3%;
+            }
+
+            .container {
+                padding: 3%;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                max-width: 800px;
+            }
+
+            .game-card {
+                padding: 15% 10%;
+            }
+
+            .header {
+                margin-bottom: 10%;
+            }
+        }
+
+        /* Адаптив для мобильных */
+        @media (max-width: 480px) {
+            body {
+                padding: 8%;
+            }
+
+            .container {
+                padding: 8%;
+            }
+
+            .games-grid {
+                gap: 20px;
+            }
+
+            .game-card {
+                padding: 15% 10%;
+                border-width: 2px;
+            }
+
+            .header {
+                margin-bottom: 20%;
+            }
+        }
+
+        /* Очень маленькие экраны */
+        @media (max-width: 360px) {
+            body {
+                padding: 10%;
+            }
+
+            .container {
+                padding: 10%;
+            }
+
+            .game-card {
+                padding: 18% 12%;
+            }
+
+            .games-grid {
+                gap: 15px;
+            }
+        }
+
+        /* Ландшафтная ориентация */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 2%;
+                justify-content: flex-start;
+            }
+
+            .container {
+                padding: 2%;
+            }
+
+            .header {
+                margin-bottom: 5%;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                max-width: 600px;
+            }
+
+            .game-card {
+                padding: 8% 5%;
+            }
+
+            h1 {
+                font-size: clamp(1.8rem, 8vw, 2.5rem);
+                margin-bottom: 2%;
+            }
+
+            .subtitle {
+                font-size: clamp(1rem, 4vw, 1.3rem);
+                margin-bottom: 5%;
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .game-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .game-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .game-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        /* Улучшения для доступности */
+        @media (prefers-reduced-motion: reduce) {
+            .game-card {
+                animation: none;
+                transition: none;
+            }
+
+            .game-card::before {
+                display: none;
+            }
+        }
+
+        /* Фокус для клавиатурной навигации */
+        .game-card:focus-visible {
+            outline: 3px solid gold;
+            outline-offset: 3px;
+            transform: translateY(-5px);
+        }
+
+        /* Поддержка темной темы */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #0a5525 0%, #083818 100%);
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <h1>🎰 Казино Слоты 🎰</h1>
-        
-        <div class="balance-info">
-            <h2>Баланс: {{ balance }} ₽</h2>
-            <h2>Текущая ставка: {{ currentBet }} ₽</h2>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 Казино 🎰</h1>
+            <div class="subtitle">Выберите игру</div>
         </div>
-        
-        <div class="bet-controls">
-            <h3>Выберите ставку:</h3>
-            <button 
-                v-for="bet in availableBets" 
-                :key="bet"
-                @click="setBet(bet)"
-                :class="{ 'current-bet': currentBet === bet }"
-                class="bet-btn"
-                :disabled="spinning || balance < bet">
-                {{ bet }} ₽
-            </button>
+
+        <div class="games-grid">
+            <a href="slot.html" class="game-card slot-card">
+                <span class="game-icon">🎰</span>
+                <div class="game-title">Игровые Автоматы</div>
+                <div class="game-description">Крутите барабаны и выигрывайте крупные джекпоты!</div>
+            </a>
+
+            <a href="durak.html" class="game-card durak-card">
+                <span class="game-icon">🎴</span>
+                <div class="game-title">Карточный Дурак</div>
+                <div class="game-description">Классическая карточная игра против компьютера</div>
+            </a>
         </div>
-        
-        <div class="slot-machine">
-            <div class="slots">
-                <div class="slot">
-                    <img :src="slots[0]" alt="Слот 1">
-                </div>
-                <div class="slot">
-                    <img :src="slots[1]" alt="Слот 2">
-                </div>
-                <div class="slot">
-                    <img :src="slots[2]" alt="Слот 3">
-                </div>
-            </div>
-            
-            <button @click="spin" :disabled="spinning || balance < currentBet">
-                {{ spinning ? 'Крутим...' : `Крутить за ${currentBet} ₽!` }}
-            </button>
-        </div>
-        
-        <div class="result" :class="{ 'win': isWin }">
-            {{ resultMessage }}
+
+        <div class="footer">
+            Удачи в игре! 🍀
         </div>
     </div>
-
-    <script>
-        new Vue({
-            el: '#app',
-            data: {
-                images: [
-                    './img/photo1.jpg',     // Вишня
-                    './img/photo2.jpg',      // Лимон  
-                    './img/photo3.jpg'       // Семёрка
-                ],
-                slots: ['./img/photo1.jpg', './img/photo2.jpg', './img/photo3.jpg'],
-                spinning: false,
-                balance: 1000,
-                currentBet: 10,
-                availableBets: [10, 25, 50, 100, 250],
-                resultMessage: 'Выберите ставку и крутите!'
-            },
-            computed: {
-                isWin() {
-                    return this.slots[0] === this.slots[1] && 
-                           this.slots[1] === this.slots[2];
-                },
-                winMultiplier() {
-                    // Возвращаем множитель для разных комбинаций
-                    if (this.slots[0] === this.slots[1] && this.slots[1] === this.slots[2]) {
-                        // Все три одинаковые - большой выигрыш
-                        return 5;
-                    } else if (this.slots[0] === this.slots[1] || 
-                              this.slots[1] === this.slots[2] || 
-                              this.slots[0] === this.slots[2]) {
-                        // Две одинаковые - маленький выигрыш
-                        return 2;
-                    }
-                    return 0;
-                }
-            },
-            methods: {
-                setBet(bet) {
-                    this.currentBet = bet;
-                    this.resultMessage = `Ставка установлена: ${bet} ₽`;
-                },
-                
-                spin() {
-                    if (this.balance < this.currentBet) {
-                        this.resultMessage = 'Недостаточно средств!';
-                        return;
-                    }
-                    
-                    this.spinning = true;
-                    this.balance -= this.currentBet;
-                    this.resultMessage = 'Крутим...';
-                    
-                    let spins = 0;
-                    const maxSpins = 10;
-                    const spinInterval = setInterval(() => {
-                        for (let i = 0; i < 3; i++) {
-                            const randomIndex = Math.floor(Math.random() * this.images.length);
-                            this.$set(this.slots, i, this.images[randomIndex]);
-                        }
-                        spins++;
-                        
-                        if (spins >= maxSpins) {
-                            clearInterval(spinInterval);
-                            this.finishSpin();
-                        }
-                    }, 100);
-                },
-                
-                finishSpin() {
-                    this.spinning = false;
-                    
-                    const winAmount = this.currentBet * this.winMultiplier;
-                    
-                    if (this.winMultiplier > 0) {
-                        this.balance += winAmount;
-                        if (this.winMultiplier === 5) {
-                            this.resultMessage = `🎉 ДЖЕКПОТ! Вы выиграли ${winAmount} ₽!`;
-                        } else {
-                            this.resultMessage = `🎉 Вы выиграли ${winAmount} ₽!`;
-                        }
-                    } else {
-                        this.resultMessage = '😢 Попробуйте еще раз!';
-                    }
-                }
-            }
-        });
-    </script>
 </body>
-</html> 
+</html>
