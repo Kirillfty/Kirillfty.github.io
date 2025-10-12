@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <input type="text" v-model="this.message">
+        <p>{{message}}</p>
+        <button @click="this.count++">click</button>
+        <p>Count:{{this.count}}</p>
+    </div>
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    message: 'Привет Vue!',
+                    count: 0
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
