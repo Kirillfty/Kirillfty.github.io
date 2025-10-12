@@ -1,5 +1,0 @@
-images: [
-                    './img/photo1.jpg',     // Вишня
-                    './img/photo2.jpg',      // Лимон  
-                    './img/photo3.jpg'       // Семёрка
-                ]
