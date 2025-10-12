@@ -1,29 +1,218 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <title>Document</title>
+    <title>Казино на Vue2</title>
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0d6b2e;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .slot-machine {
+            background: #c00;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 20px;
+        }
+        .slots {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .slot {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 3px solid gold;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slot img {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        button {
+            background: gold;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ffd700;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .bet-controls {
+            margin: 15px 0;
+        }
+        .bet-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .current-bet {
+            background: #ffd700;
+            color: #000;
+        }
+        .result {
+            font-size: 24px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .win {
+            color: gold;
+            animation: blink 0.5s infinite;
+        }
+        .balance-info {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
 </head>
 <body>
     <div id="app">
-        <input type="text" v-model="this.message">
-        <p>{{message}}</p>
-        <button @click="this.count++">click</button>
-        <p>Count:{{this.count}}</p>
-    </div>
-    <script>
-        const { createApp } = Vue;
+        <h1>🎰 Казино Слоты 🎰</h1>
         
-        createApp({
-            data() {
-                return {
-                    message: 'Привет Vue!',
-                    count: 0
+        <div class="balance-info">
+            <h2>Баланс: {{ balance }} ₽</h2>
+            <h2>Текущая ставка: {{ currentBet }} ₽</h2>
+        </div>
+        
+        <div class="bet-controls">
+            <h3>Выберите ставку:</h3>
+            <button 
+                v-for="bet in availableBets" 
+                :key="bet"
+                @click="setBet(bet)"
+                :class="{ 'current-bet': currentBet === bet }"
+                class="bet-btn"
+                :disabled="spinning || balance < bet">
+                {{ bet }} ₽
+            </button>
+        </div>
+        
+        <div class="slot-machine">
+            <div class="slots">
+                <div class="slot">
+                    <img :src="slots[0]" alt="Слот 1">
+                </div>
+                <div class="slot">
+                    <img :src="slots[1]" alt="Слот 2">
+                </div>
+                <div class="slot">
+                    <img :src="slots[2]" alt="Слот 3">
+                </div>
+            </div>
+            
+            <button @click="spin" :disabled="spinning || balance < currentBet">
+                {{ spinning ? 'Крутим...' : `Крутить за ${currentBet} ₽!` }}
+            </button>
+        </div>
+        
+        <div class="result" :class="{ 'win': isWin }">
+            {{ resultMessage }}
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                images: [
+                    './img/photo1.jpg',     // Вишня
+                    './img/photo2.jpg',      // Лимон  
+                    './img/photo3.jpg'       // Семёрка
+                ],
+                slots: ['./img/photo1.jpg', './img/photo2.jpg', './img/photo3.jpg'],
+                spinning: false,
+                balance: 1000,
+                currentBet: 10,
+                availableBets: [10, 25, 50, 100, 250],
+                resultMessage: 'Выберите ставку и крутите!'
+            },
+            computed: {
+                isWin() {
+                    return this.slots[0] === this.slots[1] && 
+                           this.slots[1] === this.slots[2];
+                },
+                winMultiplier() {
+                    // Возвращаем множитель для разных комбинаций
+                    if (this.slots[0] === this.slots[1] && this.slots[1] === this.slots[2]) {
+                        // Все три одинаковые - большой выигрыш
+                        return 5;
+                    } else if (this.slots[0] === this.slots[1] || 
+                              this.slots[1] === this.slots[2] || 
+                              this.slots[0] === this.slots[2]) {
+                        // Две одинаковые - маленький выигрыш
+                        return 2;
+                    }
+                    return 0;
+                }
+            },
+            methods: {
+                setBet(bet) {
+                    this.currentBet = bet;
+                    this.resultMessage = `Ставка установлена: ${bet} ₽`;
+                },
+                
+                spin() {
+                    if (this.balance < this.currentBet) {
+                        this.resultMessage = 'Недостаточно средств!';
+                        return;
+                    }
+                    
+                    this.spinning = true;
+                    this.balance -= this.currentBet;
+                    this.resultMessage = 'Крутим...';
+                    
+                    let spins = 0;
+                    const maxSpins = 10;
+                    const spinInterval = setInterval(() => {
+                        for (let i = 0; i < 3; i++) {
+                            const randomIndex = Math.floor(Math.random() * this.images.length);
+                            this.$set(this.slots, i, this.images[randomIndex]);
+                        }
+                        spins++;
+                        
+                        if (spins >= maxSpins) {
+                            clearInterval(spinInterval);
+                            this.finishSpin();
+                        }
+                    }, 100);
+                },
+                
+                finishSpin() {
+                    this.spinning = false;
+                    
+                    const winAmount = this.currentBet * this.winMultiplier;
+                    
+                    if (this.winMultiplier > 0) {
+                        this.balance += winAmount;
+                        if (this.winMultiplier === 5) {
+                            this.resultMessage = `🎉 ДЖЕКПОТ! Вы выиграли ${winAmount} ₽!`;
+                        } else {
+                            this.resultMessage = `🎉 Вы выиграли ${winAmount} ₽!`;
+                        }
+                    } else {
+                        this.resultMessage = '😢 Попробуйте еще раз!';
+                    }
                 }
             }
-        }).mount('#app');
+        });
     </script>
 </body>
 </html>
