@@ -3,321 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="img/chip.png" type="image/png">
-
-     <link rel="icon" href="https://example.com/path/to/casino-icon.png" type="image/png">
-    <title>Казино - Выбор игры</title>
+    <title>Интернет-магазин</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0d6b2e 0%, #094a21 100%);
-            color: white;
-            text-align: center;
-            padding: 5%;
-            min-height: 100vh;
-            -webkit-tap-highlight-color: transparent;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .container {
-            max-width: 100%;
-            width: 100%;
-            padding: 5%;
-        }
-
-        .header {
-            margin-bottom: 15%;
-        }
-
-        h1 {
-            font-size: clamp(2.5rem, 10vw, 4rem);
-            margin-bottom: 5%;
-            color: gold;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-            font-weight: 900;
-            letter-spacing: 2px;
-        }
-
-        .subtitle {
-            font-size: clamp(1.2rem, 5vw, 1.8rem);
-            color: #ffd700;
-            margin-bottom: 10%;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 25px;
-            max-width: 500px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .game-card {
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
-            border: 3px solid gold;
-            border-radius: 20px;
-            padding: 12% 8%;
-            text-decoration: none;
-            color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
+        .product-card {
+            transition: transform 0.2s;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
         }
-
-        .game-card:hover::before {
-            left: 100%;
-        }
-
-        .game-card:hover {
-            transform: translateY(-8px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            border-color: #ffd700;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
-        }
-
-        .game-card:active {
-            transform: translateY(-2px) scale(1.02);
-        }
-
-        .game-icon {
-            font-size: clamp(2.5rem, 12vw, 4rem);
-            margin-bottom: 8%;
-            display: block;
-        }
-
-        .game-title {
-            font-size: clamp(1.5rem, 6vw, 2.2rem);
-            font-weight: bold;
-            margin-bottom: 5%;
-            color: gold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .game-description {
-            font-size: clamp(0.9rem, 4vw, 1.1rem);
-            color: #e0e0e0;
-            line-height: 1.4;
-            opacity: 0.9;
-        }
-
-        .slot-card {
-            background: linear-gradient(145deg, rgba(192, 0, 0, 0.7), rgba(160, 0, 0, 0.5));
-        }
-
-        .durak-card {
-            background: linear-gradient(145deg, rgba(74, 144, 226, 0.7), rgba(53, 122, 189, 0.5));
-        }
-
-        .footer {
-            margin-top: 15%;
-            font-size: clamp(0.8rem, 3vw, 1rem);
-            color: #ccc;
-            opacity: 0.8;
-        }
-
-        /* Адаптив для планшетов */
-        @media (min-width: 768px) {
-            body {
-                padding: 3%;
-            }
-
-            .container {
-                padding: 3%;
-            }
-
-            .games-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 30px;
-                max-width: 800px;
-            }
-
-            .game-card {
-                padding: 15% 10%;
-            }
-
-            .header {
-                margin-bottom: 10%;
-            }
-        }
-
-        /* Адаптив для мобильных */
-        @media (max-width: 480px) {
-            body {
-                padding: 8%;
-            }
-
-            .container {
-                padding: 8%;
-            }
-
-            .games-grid {
-                gap: 20px;
-            }
-
-            .game-card {
-                padding: 15% 10%;
-                border-width: 2px;
-            }
-
-            .header {
-                margin-bottom: 20%;
-            }
-        }
-
-        /* Очень маленькие экраны */
-        @media (max-width: 360px) {
-            body {
-                padding: 10%;
-            }
-
-            .container {
-                padding: 10%;
-            }
-
-            .game-card {
-                padding: 18% 12%;
-            }
-
-            .games-grid {
-                gap: 15px;
-            }
-        }
-
-        /* Ландшафтная ориентация */
-        @media (max-height: 500px) and (orientation: landscape) {
-            body {
-                padding: 2%;
-                justify-content: flex-start;
-            }
-
-            .container {
-                padding: 2%;
-            }
-
-            .header {
-                margin-bottom: 5%;
-            }
-
-            .games-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                max-width: 600px;
-            }
-
-            .game-card {
-                padding: 8% 5%;
-            }
-
-            h1 {
-                font-size: clamp(1.8rem, 8vw, 2.5rem);
-                margin-bottom: 2%;
-            }
-
-            .subtitle {
-                font-size: clamp(1rem, 4vw, 1.3rem);
-                margin-bottom: 5%;
-            }
-        }
-
-        /* Анимации */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .game-card {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .game-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .game-card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        /* Улучшения для доступности */
-        @media (prefers-reduced-motion: reduce) {
-            .game-card {
-                animation: none;
-                transition: none;
-            }
-
-            .game-card::before {
-                display: none;
-            }
-        }
-
-        /* Фокус для клавиатурной навигации */
-        .game-card:focus-visible {
-            outline: 3px solid gold;
-            outline-offset: 3px;
+        .product-card:hover {
             transform: translateY(-5px);
         }
-
-        /* Поддержка темной темы */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: linear-gradient(135deg, #0a5525 0%, #083818 100%);
-            }
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎰 Казино 🎰</h1>
-            <div class="subtitle">Выберите игру</div>
-        </div>
+    <div id="app">
+        <!-- Навигация -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="#">Магазин</a>
+                <div class="navbar-nav ms-auto">
+                    <div class="nav-item position-relative">
+                        <button class="btn btn-outline-light" @click="currentView = 'products'">
+                            Товары
+                        </button>
+                    </div>
+                    <div class="nav-item position-relative">
+                        <button class="btn btn-outline-light position-relative" @click="currentView = 'cart'">
+                            Корзина
+                            <span v-if="cartTotalItems > 0" class="badge bg-danger cart-badge">
+                                {{ cartTotalItems }}
+                            </span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button class="btn btn-outline-light" @click="currentView = 'profile'">
+                            Личный кабинет
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
 
-        <div class="games-grid">
-            <a href="slot.html" class="game-card slot-card">
-                <span class="game-icon">🎰</span>
-                <div class="game-title">Игровые Автоматы</div>
-                <div class="game-description">Крутите барабаны и выигрывайте крупные джекпоты!</div>
-            </a>
+        <!-- Основной контент -->
+        <div class="container mt-4">
+            <!-- Страница товаров -->
+            <div v-if="currentView === 'products'">
+                <h2>Каталог товаров</h2>
+                <div class="row">
+                    <div v-for="product in products" :key="product.id" class="col-md-4 mb-4">
+                        <div class="card product-card">
+                            <img :src="product.image" class="card-img-top" :alt="product.name" style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text flex-grow-1">{{ product.description }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 mb-0 text-primary">{{ product.price }} ₽</span>
+                                    <button class="btn btn-primary" @click="addToCart(product)">
+                                        В корзину
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <a href="durak.html" class="game-card durak-card">
-                <span class="game-icon">🎴</span>
-                <div class="game-title">Карточный Дурак</div>
-                <div class="game-description">Классическая карточная игра против компьютера</div>
-            </a>
-        </div>
+            <!-- Корзина -->
+            <div v-if="currentView === 'cart'">
+                <h2>Корзина</h2>
+                <div v-if="cartItems.length === 0" class="alert alert-info">
+                    Корзина пуста
+                </div>
+                <div v-else>
+                    <div v-for="item in cartItems" :key="item.id" class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    <img :src="item.image" class="img-fluid" :alt="item.name">
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>{{ item.name }}</h5>
+                                </div>
+                                <div class="col-md-2">
+                                    <span class="h5">{{ item.price }} ₽</span>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="input-group">
+                                        <button class="btn btn-outline-secondary" @click="updateQuantity(item, -1)">-</button>
+                                        <input type="number" class="form-control text-center" v-model.number="item.quantity" min="1" @change="updateCartItem(item)">
+                                        <button class="btn btn-outline-secondary" @click="updateQuantity(item, 1)">+</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-danger" @click="removeFromCart(item)">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h4>Итого: {{ cartTotal }} ₽</h4>
+                            <button class="btn btn-success btn-lg" @click="showPayment = true">
+                                Перейти к оплате
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="footer">
-            Удачи в игре! 🍀
+                <!-- Форма оплаты -->
+                <div v-if="showPayment" class="card mt-4">
+                    <div class="card-header">
+                        <h4>Оформление заказа</h4>
+                    </div>
+                    <div class="card-body">
+                        <form @submit.prevent="processPayment">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Данные для доставки</h5>
+                                    <div class="mb-3">
+                                        <label class="form-label">ФИО</label>
+                                        <input type="text" class="form-control" v-model="orderData.fullName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Адрес</label>
+                                        <textarea class="form-control" v-model="orderData.address" required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Телефон</label>
+                                        <input type="tel" class="form-control" v-model="orderData.phone" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Данные карты</h5>
+                                    <div class="mb-3">
+                                        <label class="form-label">Номер карты</label>
+                                        <input type="text" class="form-control" v-model="paymentData.cardNumber" placeholder="1234 5678 9012 3456" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label">Срок действия</label>
+                                            <input type="text" class="form-control" v-model="paymentData.expiry" placeholder="MM/YY" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">CVV</label>
+                                            <input type="text" class="form-control" v-model="paymentData.cvv" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-success" :disabled="processingPayment">
+                                    {{ processingPayment ? 'Обработка...' : 'Оплатить ' + cartTotal + ' ₽' }}
+                                </button>
+                                <button type="button" class="btn btn-secondary ms-2" @click="showPayment = false">
+                                    Отмена
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Личный кабинет -->
+            <div v-if="currentView === 'profile'">
+                <h2>Личный кабинет</h2>
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link" :class="{ active: profileTab === 'orders' }" 
+                           @click="profileTab = 'orders'">Мои заказы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" :class="{ active: profileTab === 'profile' }" 
+                           @click="profileTab = 'profile'">Профиль</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3">
+                    <!-- Мои заказы -->
+                    <div v-if="profileTab === 'orders'">
+                        <div v-if="userOrders.length === 0" class="alert alert-info">
+                            У вас пока нет заказов
+                        </div>
+                        <div v-else>
+                            <div v-for="order in userOrders" :key="order.id" class="card mb-3">
+                                <div class="card-header">
+                                    <strong>Заказ #{{ order.id }}</strong>
+                                    <span class="float-end">{{ order.status }}</span>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Дата:</strong> {{ order.created_at }}</p>
+                                    <p><strong>Адрес доставки:</strong> {{ order.shipping_address }}</p>
+                                    <p><strong>Итого:</strong> {{ order.total_amount }} ₽</p>
+                                    <h6>Товары:</h6>
+                                    <ul>
+                                        <li v-for="item in order.items" :key="item.id">
+                                            {{ item.name }} - {{ item.quantity }} шт. × {{ item.price }} ₽
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Профиль -->
+                    <div v-if="profileTab === 'profile'">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Личная информация</h5>
+                                <form @submit.prevent="updateProfile">
+                                    <div class="mb-3">
+                                        <label class="form-label">Имя</label>
+                                        <input type="text" class="form-control" v-model="userProfile.name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" v-model="userProfile.email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Телефон</label>
+                                        <input type="tel" class="form-control" v-model="userProfile.phone">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Адрес</label>
+                                        <textarea class="form-control" v-model="userProfile.address"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script src="database.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
