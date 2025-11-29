@@ -3,252 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Интернет-магазин</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Clubs API</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        .product-card {
-            transition: transform 0.2s;
-            height: 100%;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-        .product-card:hover {
-            transform: translateY(-5px);
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .cart-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
         }
-        .nav-tabs .nav-link.active {
+        .error {
+            background-color: #ffe6e6;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .club-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        .club-name {
+            font-size: 1.2em;
             font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .club-info {
+            color: #666;
+            margin: 5px 0;
+        }
+        .refresh-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
+        .refresh-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- Навигация -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand" href="#">Магазин</a>
-                <div class="navbar-nav ms-auto">
-                    <div class="nav-item position-relative">
-                        <button class="btn btn-outline-light" @click="currentView = 'products'">
-                            Товары
-                        </button>
-                    </div>
-                    <div class="nav-item position-relative">
-                        <button class="btn btn-outline-light position-relative" @click="currentView = 'cart'">
-                            Корзина
-                            <span v-if="cartTotalItems > 0" class="badge bg-danger cart-badge">
-                                {{ cartTotalItems }}
-                            </span>
-                        </button>
-                    </div>
-                    <div class="nav-item">
-                        <button class="btn btn-outline-light" @click="currentView = 'profile'">
-                            Личный кабинет
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        <div class="container">
+            <h1>Список клубов</h1>
+            
+            <button 
+                class="refresh-btn" 
+                @click="fetchClubs" 
+                :disabled="loading"
+            >
+                {{ loading ? 'Загрузка...' : 'Обновить данные' }}
+            </button>
 
-        <!-- Основной контент -->
-        <div class="container mt-4">
-            <!-- Страница товаров -->
-            <div v-if="currentView === 'products'">
-                <h2>Каталог товаров</h2>
-                <div class="row">
-                    <div v-for="product in products" :key="product.id" class="col-md-4 mb-4">
-                        <div class="card product-card">
-                            <img :src="product.image" class="card-img-top" :alt="product.name" style="height: 200px; object-fit: cover;">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">{{ product.name }}</h5>
-                                <p class="card-text flex-grow-1">{{ product.description }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="h5 mb-0 text-primary">{{ product.price }} ₽</span>
-                                    <button class="btn btn-primary" @click="addToCart(product)">
-                                        В корзину
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <div v-if="loading" class="loading">
+                Загрузка данных...
+            </div>
+
+            <div v-if="error" class="error">
+                Ошибка: {{ error }}
+            </div>
+
+            <div v-if="clubs.length > 0">
+                <h2>Найдено клубов: {{ clubs.length }}</h2>
+                <div 
+                    v-for="club in clubs" 
+                    :key="club.id" 
+                    class="club-card"
+                >
+                    <div class="club-name">{{ club.name }}</div>
+                    <div class="club-info" v-if="club.description">
+                        Описание: {{ club.description }}
                     </div>
+                    <div class="club-info" v-if="club.address">
+                        Адрес: {{ club.address }}
+                    </div>
+                    <div class="club-info" v-if="club.phone">
+                        Телефон: {{ club.phone }}
+                    </div>
+                    <div class="club-info" v-if="club.email">
+                        Email: {{ club.email }}
+                    </div>
+                    <!-- Добавьте другие поля по мере необходимости -->
                 </div>
             </div>
 
-            <!-- Корзина -->
-            <div v-if="currentView === 'cart'">
-                <h2>Корзина</h2>
-                <div v-if="cartItems.length === 0" class="alert alert-info">
-                    Корзина пуста
-                </div>
-                <div v-else>
-                    <div v-for="item in cartItems" :key="item.id" class="card mb-3">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
-                                    <img :src="item.image" class="img-fluid" :alt="item.name">
-                                </div>
-                                <div class="col-md-4">
-                                    <h5>{{ item.name }}</h5>
-                                </div>
-                                <div class="col-md-2">
-                                    <span class="h5">{{ item.price }} ₽</span>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="input-group">
-                                        <button class="btn btn-outline-secondary" @click="updateQuantity(item, -1)">-</button>
-                                        <input type="number" class="form-control text-center" v-model.number="item.quantity" min="1" @change="updateCartItem(item)">
-                                        <button class="btn btn-outline-secondary" @click="updateQuantity(item, 1)">+</button>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-danger" @click="removeFromCart(item)">
-                                        Удалить
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-body">
-                            <h4>Итого: {{ cartTotal }} ₽</h4>
-                            <button class="btn btn-success btn-lg" @click="showPayment = true">
-                                Перейти к оплате
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Форма оплаты -->
-                <div v-if="showPayment" class="card mt-4">
-                    <div class="card-header">
-                        <h4>Оформление заказа</h4>
-                    </div>
-                    <div class="card-body">
-                        <form @submit.prevent="processPayment">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h5>Данные для доставки</h5>
-                                    <div class="mb-3">
-                                        <label class="form-label">ФИО</label>
-                                        <input type="text" class="form-control" v-model="orderData.fullName" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Адрес</label>
-                                        <textarea class="form-control" v-model="orderData.address" required></textarea>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Телефон</label>
-                                        <input type="tel" class="form-control" v-model="orderData.phone" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <h5>Данные карты</h5>
-                                    <div class="mb-3">
-                                        <label class="form-label">Номер карты</label>
-                                        <input type="text" class="form-control" v-model="paymentData.cardNumber" placeholder="1234 5678 9012 3456" required>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <label class="form-label">Срок действия</label>
-                                            <input type="text" class="form-control" v-model="paymentData.expiry" placeholder="MM/YY" required>
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label">CVV</label>
-                                            <input type="text" class="form-control" v-model="paymentData.cvv" required>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <button type="submit" class="btn btn-success" :disabled="processingPayment">
-                                    {{ processingPayment ? 'Обработка...' : 'Оплатить ' + cartTotal + ' ₽' }}
-                                </button>
-                                <button type="button" class="btn btn-secondary ms-2" @click="showPayment = false">
-                                    Отмена
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Личный кабинет -->
-            <div v-if="currentView === 'profile'">
-                <h2>Личный кабинет</h2>
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link" :class="{ active: profileTab === 'orders' }" 
-                           @click="profileTab = 'orders'">Мои заказы</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" :class="{ active: profileTab === 'profile' }" 
-                           @click="profileTab = 'profile'">Профиль</a>
-                    </li>
-                </ul>
-
-                <div class="tab-content mt-3">
-                    <!-- Мои заказы -->
-                    <div v-if="profileTab === 'orders'">
-                        <div v-if="userOrders.length === 0" class="alert alert-info">
-                            У вас пока нет заказов
-                        </div>
-                        <div v-else>
-                            <div v-for="order in userOrders" :key="order.id" class="card mb-3">
-                                <div class="card-header">
-                                    <strong>Заказ #{{ order.id }}</strong>
-                                    <span class="float-end">{{ order.status }}</span>
-                                </div>
-                                <div class="card-body">
-                                    <p><strong>Дата:</strong> {{ order.created_at }}</p>
-                                    <p><strong>Адрес доставки:</strong> {{ order.shipping_address }}</p>
-                                    <p><strong>Итого:</strong> {{ order.total_amount }} ₽</p>
-                                    <h6>Товары:</h6>
-                                    <ul>
-                                        <li v-for="item in order.items" :key="item.id">
-                                            {{ item.name }} - {{ item.quantity }} шт. × {{ item.price }} ₽
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Профиль -->
-                    <div v-if="profileTab === 'profile'">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5>Личная информация</h5>
-                                <form @submit.prevent="updateProfile">
-                                    <div class="mb-3">
-                                        <label class="form-label">Имя</label>
-                                        <input type="text" class="form-control" v-model="userProfile.name" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" v-model="userProfile.email" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Телефон</label>
-                                        <input type="tel" class="form-control" v-model="userProfile.phone">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Адрес</label>
-                                        <textarea class="form-control" v-model="userProfile.address"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Сохранить</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div v-else-if="!loading && !error">
+                <p>Нет данных для отображения</p>
             </div>
         </div>
     </div>
 
-    <script src="database.js"></script>
-    <script src="app.js"></script>
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const clubs = ref([]);
+                const loading = ref(false);
+                const error = ref(null);
+
+                const fetchClubs = async () => {
+                    loading.value = true;
+                    error.value = null;
+                    
+                    try {
+                        const response = await fetch('http://161.35.94.80:4000/api/clubs');
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        clubs.value = data;
+                    } catch (err) {
+                        error.value = err.message;
+                        console.error('Ошибка при получении данных:', err);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // Автоматически загружаем данные при монтировании компонента
+                onMounted(() => {
+                    fetchClubs();
+                });
+
+                return {
+                    clubs,
+                    loading,
+                    error,
+                    fetchClubs
+                };
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>
