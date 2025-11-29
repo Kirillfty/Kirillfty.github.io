@@ -3,163 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clubs API</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <title>Интернет-магазин | Каталог товаров</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 0 20px;
         }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .error {
-            background-color: #ffe6e6;
-            color: #d63031;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .club-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            background: #f9f9f9;
-        }
-        .club-name {
-            font-size: 1.2em;
+
+        .logo {
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
         }
-        .club-info {
+
+        .contact-info {
+            text-align: right;
+        }
+
+        .tg-button {
+            display: inline-block;
+            background: #0088cc;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .tg-button:hover {
+            background: #006699;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        /* Catalog Grid */
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #667eea;
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .product-price {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .product-description {
             color: #666;
-            margin: 5px 0;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
-        .refresh-btn {
-            background-color: #3498db;
+
+        .buy-button {
+            background: #667eea;
             color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            margin-bottom: 20px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            width: 100%;
         }
-        .refresh-btn:hover {
-            background-color: #2980b9;
+
+        .buy-button:hover {
+            background: #764ba2;
         }
-        .refresh-btn:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
+
+        /* Contact Section */
+        .contact-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .contact-title {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .contact-text {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .contact-info {
+                text-align: center;
+                margin-top: 1rem;
+            }
+
+            .catalog-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="app">
+    <!-- Header -->
+    <header>
         <div class="container">
-            <h1>Список клубов</h1>
+            <div class="header-content">
+                <div class="logo">МАГАЗИН ПРОДУКТОВ</div>
+                <div class="contact-info">
+                    <div>Есть вопросы? Напишите нам!</div>
+                    <a href="https://t.me/your_manager_username" class="tg-button" target="_blank">
+                        📱 Написать в Telegram
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title">Каталог товаров</h1>
             
-            <button 
-                class="refresh-btn" 
-                @click="fetchClubs" 
-                :disabled="loading"
-            >
-                {{ loading ? 'Загрузка...' : 'Обновить данные' }}
-            </button>
+            <!-- Products Grid -->
+            <div class="catalog-grid">
+                <!-- Product 1 -->
+                <div class="product-card">
+                    <div class="product-image">📱</div>
+                    <h3 class="product-title">Смартфон Premium</h3>
+                    <div class="product-price">25 990 ₽</div>
+                    <p class="product-description">Мощный смартфон с отличной камерой и долгим временем работы</p>
+                    <button class="buy-button">Купить сейчас</button>
+                </div>
 
-            <div v-if="loading" class="loading">
-                Загрузка данных...
-            </div>
+                <!-- Product 2 -->
+                <div class="product-card">
+                    <div class="product-image">💻</div>
+                    <h3 class="product-title">Ноутбук Gaming</h3>
+                    <div class="product-price">89 990 ₽</div>
+                    <p class="product-description">Игровой ноутбук с мощной видеокартой и процессором</p>
+                    <button class="buy-button">Купить сейчас</button>
+                </div>
 
-            <div v-if="error" class="error">
-                Ошибка: {{ error }}
-            </div>
+                <!-- Product 3 -->
+                <div class="product-card">
+                    <div class="product-image">🎧</div>
+                    <h3 class="product-title">Наушники Pro</h3>
+                    <div class="product-price">12 490 ₽</div>
+                    <p class="product-description">Беспроводные наушники с шумоподавлением</p>
+                    <button class="buy-button">Купить сейчас</button>
+                </div>
 
-            <div v-if="clubs.length > 0">
-                <h2>Найдено клубов: {{ clubs.length }}</h2>
-                <div 
-                    v-for="club in clubs" 
-                    :key="club.id" 
-                    class="club-card"
-                >
-                    <div class="club-name">{{ club.name }}</div>
-                    <div class="club-info" v-if="club.description">
-                        Описание: {{ club.description }}
-                    </div>
-                    <div class="club-info" v-if="club.address">
-                        Адрес: {{ club.address }}
-                    </div>
-                    <div class="club-info" v-if="club.phone">
-                        Телефон: {{ club.phone }}
-                    </div>
-                    <div class="club-info" v-if="club.email">
-                        Email: {{ club.email }}
-                    </div>
-                    <!-- Добавьте другие поля по мере необходимости -->
+                <!-- Product 4 -->
+                <div class="product-card">
+                    <div class="product-image">⌚</div>
+                    <h3 class="product-title">Умные часы</h3>
+                    <div class="product-price">8 990 ₽</div>
+                    <p class="product-description">Умные часы с отслеживанием здоровья и уведомлениями</p>
+                    <button class="buy-button">Купить сейчас</button>
+                </div>
+
+                <!-- Product 5 -->
+                <div class="product-card">
+                    <div class="product-image">📷</div>
+                    <h3 class="product-title">Фотоаппарат</h3>
+                    <div class="product-price">45 990 ₽</div>
+                    <p class="product-description">Зеркальная камера для профессиональной съемки</p>
+                    <button class="buy-button">Купить сейчас</button>
+                </div>
+
+                <!-- Product 6 -->
+                <div class="product-card">
+                    <div class="product-image">🔊</div>
+                    <h3 class="product-title">Колонка Bluetooth</h3>
+                    <div class="product-price">5 490 ₽</div>
+                    <p class="product-description">Портативная колонка с мощным звуком</p>
+                    <button class="buy-button">Купить сейчас</button>
                 </div>
             </div>
 
-            <div v-else-if="!loading && !error">
-                <p>Нет данных для отображения</p>
+            <!-- Contact Section -->
+            <div class="contact-section">
+                <h2 class="contact-title">Нужна консультация?</h2>
+                <p class="contact-text">Наш менеджер ответит на все ваши вопросы и поможет с выбором товара</p>
+                <a href="https://t.me/your_manager_username" class="tg-button" target="_blank">
+                    💬 Связаться с менеджером в Telegram
+                </a>
             </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© 2024 Интернет-магазин. Все права защищены.</p>
+            <p>Свяжитесь с нами: 
+                <a href="https://t.me/your_manager_username" style="color: #0088cc; text-decoration: none;">
+                    @your_manager_username
+                </a>
+            </p>
+        </div>
+    </footer>
 
     <script>
-        const { createApp, ref, onMounted } = Vue;
-
-        createApp({
-            setup() {
-                const clubs = ref([]);
-                const loading = ref(false);
-                const error = ref(null);
-
-                const fetchClubs = async () => {
-                    loading.value = true;
-                    error.value = null;
-                    
-                    try {
-                        const response = await fetch('http://161.35.94.80:4000/api/clubs');
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        
-                        const data = await response.json();
-                        clubs.value = data;
-                    } catch (err) {
-                        error.value = err.message;
-                        console.error('Ошибка при получении данных:', err);
-                    } finally {
-                        loading.value = false;
-                    }
-                };
-
-                // Автоматически загружаем данные при монтировании компонента
-                onMounted(() => {
-                    fetchClubs();
-                });
-
-                return {
-                    clubs,
-                    loading,
-                    error,
-                    fetchClubs
-                };
-            }
-        }).mount('#app');
+        // Обработчик для кнопок "Купить сейчас"
+        document.querySelectorAll('.buy-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const productName = this.closest('.product-card').querySelector('.product-title').textContent;
+                const productPrice = this.closest('.product-card').querySelector('.product-price').textContent;
+                
+                // Создаем сообщение для Telegram
+                const message = `Здравствуйте! Я хочу купить товар: ${productName} за ${productPrice}`;
+                const encodedMessage = encodeURIComponent(message);
+                
+                // Открываем Telegram с предзаполненным сообщением
+                window.open(`https://t.me/your_manager_username?text=${encodedMessage}`, '_blank');
+            });
+        });
     </script>
 </body>
 </html>
