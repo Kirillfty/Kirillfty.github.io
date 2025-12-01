@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Казино Олимпус</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a3a 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            border: 2px solid #c5a151;
+        }
+        
+        .logo {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            color: #c5a151;
+            text-shadow: 0 0 10px rgba(197, 161, 81, 0.7);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 1.2rem;
+        }
+        
+        .player-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+        }
+        
+        .balance {
+            font-size: 1.5rem;
+            color: #4CAF50;
+        }
+        
+        .bet-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .bet-amount {
+            font-size: 1.3rem;
+            color: #c5a151;
+        }
+        
+        button {
+            background: #c5a151;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #d4b15e;
+            transform: scale(1.05);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .game-area {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        
+        .slot-machine {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #c5a151;
+        }
+        
+        .reels {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .reel {
+            width: 120px;
+            height: 120px;
+            background: #111;
+            border: 3px solid #c5a151;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .reel-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spin-btn {
+            font-size: 1.3rem;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #c5a151, #e6c87e);
+            margin-top: 20px;
+        }
+        
+        .history {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .history h3 {
+            color: #c5a151;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .win {
+            color: #4CAF50;
+        }
+        
+        .loss {
+            color: #f44336;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+        
+        .jackpot {
+            color: #FFD700;
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 20px 0;
+            text-shadow: 0 0 5px #FFD700;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .reel {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+            
+            .logo {
+                font-size: 2.5rem;
+            }
+        }
+        
+        .spinning {
+            animation: spin 0.1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        
+        .symbols-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .symbol {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        
+        .symbol-icon {
+            font-size: 1.8rem;
+        }
+        
+        .symbol-multiplier {
+            color: #c5a151;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <header>
+            <h1 class="logo">OLYMPUS CASINO</h1>
+            <p class="subtitle">Боги удачи на вашей стороне</p>
+        </header>
+        
+        <div class="player-info">
+            <div>
+                <h3>Игрок: Герой Олимпа</h3>
+                <div class="balance">Баланс: {{ formatCurrency(balance) }}</div>
+            </div>
+            <div class="bet-control">
+                <button @click="changeBet(-10)" :disabled="bet <= 10">-10</button>
+                <button @click="changeBet(-1)" :disabled="bet <= 1">-1</button>
+                <div class="bet-amount">Ставка: {{ formatCurrency(bet) }}</div>
+                <button @click="changeBet(1)">+1</button>
+                <button @click="changeBet(10)">+10</button>
+                <button @click="setMaxBet" style="margin-left: 20px;">МАКС</button>
+            </div>
+        </div>
+        
+        <div class="jackpot" v-if="jackpotActive">
+            🎰 ДЖЕКПОТ: {{ formatCurrency(jackpot) }} 🎰
+        </div>
+        
+        <div class="game-area">
+            <div class="slot-machine">
+                <h2>Слот-машина "Гром Зевса"</h2>
+                <div class="reels">
+                    <div class="reel" v-for="(reel, index) in reels" :key="index">
+                        <div class="reel-content" :class="{ spinning: isSpinning }">
+                            {{ symbols[reel] }}
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="spin-btn" @click="spin" :disabled="isSpinning || balance < bet">
+                    {{ isSpinning ? 'КРУТИМ...' : 'КРУТИТЬ' }}
+                </button>
+                
+                <div class="results" v-if="lastWin > 0">
+                    <h3 class="win">ПОБЕДА: {{ formatCurrency(lastWin) }}!</h3>
+                    <p>Множитель: x{{ winMultiplier }}</p>
+                </div>
+                
+                <div class="symbols-info">
+                    <div class="symbol" v-for="(symbol, index) in symbolList" :key="symbol.name">
+                        <span class="symbol-icon">{{ symbol.icon }}</span>
+                        <div>
+                            <div>{{ symbol.name }}</div>
+                            <div class="symbol-multiplier">x{{ symbol.multiplier }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="history">
+                <h3>История игр</h3>
+                <div class="history-list">
+                    <div v-for="(item, index) in history" :key="index" class="history-item">
+                        <span>{{ item.time }}</span>
+                        <span :class="item.win > 0 ? 'win' : 'loss'">
+                            {{ item.win > 0 ? '+' + formatCurrency(item.win) : formatCurrency(item.bet) }}
+                        </span>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <h4>Статистика</h4>
+                    <p>Побед: {{ wins }}</p>
+                    <p>Проигрышей: {{ losses }}</p>
+                    <p>Соотношение: {{ winRate }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // Состояние игры
+                const balance = ref(1000);
+                const bet = ref(10);
+                const reels = ref([0, 0, 0]);
+                const isSpinning = ref(false);
+                const history = ref([]);
+                const lastWin = ref(0);
+                const winMultiplier = ref(0);
+                const jackpot = ref(10000);
+                const jackpotActive = ref(false);
+                
+                // Символы слотов
+                const symbols = ['⚡', '🦉', '🌊', '🏛️', '⚔️', '🛡️', '🏺', '🔥'];
+                
+                // Информация о символах
+                const symbolList = [
+                    { icon: '⚡', name: 'Зевс', multiplier: 10 },
+                    { icon: '🦉', name: 'Афина', multiplier: 8 },
+                    { icon: '🌊', name: 'Посейдон', multiplier: 6 },
+                    { icon: '🏛️', name: 'Парфенон', multiplier: 5 },
+                    { icon: '⚔️', name: 'Арес', multiplier: 4 },
+                    { icon: '🛡️', name: 'Гера', multiplier: 3 },
+                    { icon: '🏺', name: 'Дионис', multiplier: 2 },
+                    { icon: '🔥', name: 'Гефест', multiplier: 1.5 }
+                ];
+                
+                // Форматирование валюты
+                const formatCurrency = (amount) => {
+                    return amount.toFixed(2) + ' ₽';
+                };
+                
+                // Изменение ставки
+                const changeBet = (amount) => {
+                    const newBet = bet.value + amount;
+                    if (newBet >= 1 && newBet <= balance.value) {
+                        bet.value = newBet;
+                    }
+                };
+                
+                // Максимальная ставка
+                const setMaxBet = () => {
+                    bet.value = Math.min(100, balance.value);
+                };
+                
+                // Статистика
+                const wins = computed(() => {
+                    return history.value.filter(item => item.win > 0).length;
+                });
+                
+                const losses = computed(() => {
+                    return history.value.filter(item => item.win === 0).length;
+                });
+                
+                const winRate = computed(() => {
+                    const total = wins.value + losses.value;
+                    return total > 0 ? Math.round((wins.value / total) * 100) : 0;
+                });
+                
+                // Вращение слотов
+                const spin = () => {
+                    if (isSpinning.value || balance.value < bet.value) return;
+                    
+                    // Снимаем ставку
+                    balance.value -= bet.value;
+                    isSpinning.value = true;
+                    lastWin.value = 0;
+                    
+                    // Анимация вращения
+                    let spins = 0;
+                    const maxSpins = 20;
+                    const spinInterval = setInterval(() => {
+                        reels.value = reels.value.map(() => 
+                            Math.floor(Math.random() * symbols.length)
+                        );
+                        spins++;
+                        
+                        if (spins >= maxSpins) {
+                            clearInterval(spinInterval);
+                            calculateResult();
+                        }
+                    }, 100);
+                };
+                
+                // Расчет результата
+                const calculateResult = () => {
+                    isSpinning.value = false;
+                    
+                    // Простая логика выигрыша
+                    const [a, b, c] = reels.value;
+                    
+                    let multiplier = 0;
+                    
+                    // Проверка на джекпот (все символы одинаковые)
+                    if (a === b && b === c) {
+                        multiplier = symbolList[a].multiplier * 3;
+                        jackpotActive.value = true;
+                        jackpot.value += bet.value * 0.1;
+                    } 
+                    // Два одинаковых символа
+                    else if (a === b || b === c || a === c) {
+                        const matchedSymbol = a === b ? a : c;
+                        multiplier = symbolList[matchedSymbol].multiplier;
+                    }
+                    
+                    // Расчет выигрыша
+                    const winAmount = multiplier > 0 ? bet.value * multiplier : 0;
+                    
+                    if (winAmount > 0) {
+                        balance.value += winAmount;
+                        lastWin.value = winAmount;
+                        winMultiplier.value = multiplier;
+                        
+                        // Джекпот
+                        if (multiplier >= 30) {
+                            balance.value += jackpot.value;
+                            jackpot.value = 10000;
+                            setTimeout(() => {
+                                alert(`🎉 ДЖЕКПОТ! Вы выиграли ${formatCurrency(jackpot.value)}! 🎉`);
+                            }, 500);
+                        }
+                    }
+                    
+                    // Добавляем в историю
+                    const now = new Date();
+                    const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    history.value.unshift({
+                        time: timeString,
+                        bet: bet.value,
+                        win: winAmount,
+                        result: reels.value.map(i => symbols[i]).join(' ')
+                    });
+                    
+                    // Ограничиваем историю
+                    if (history.value.length > 10) {
+                        history.value = history.value.slice(0, 10);
+                    }
+                    
+                    // Скрываем джекпот через 3 секунды
+                    if (jackpotActive.value) {
+                        setTimeout(() => {
+                            jackpotActive.value = false;
+                        }, 3000);
+                    }
+                };
+                
+                // Инициализация
+                onMounted(() => {
+                    // Начальное заполнение истории
+                    const now = new Date();
+                    for (let i = 0; i < 5; i++) {
+                        const time = new Date(now.getTime() - i * 600000);
+                        const timeString = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
+                        const win = Math.random() > 0.6 ? Math.floor(Math.random() * 100) + 10 : 0;
+                        
+                        history.value.push({
+                            time: timeString,
+                            bet: 10,
+                            win: win,
+                            result: '🎰 🎰 🎰'
+                        });
+                    }
+                });
+                
+                return {
+                    balance,
+                    bet,
+                    reels,
+                    isSpinning,
+                    history,
+                    lastWin,
+                    winMultiplier,
+                    jackpot,
+                    jackpotActive,
+                    symbols,
+                    symbolList,
+                    formatCurrency,
+                    changeBet,
+                    setMaxBet,
+                    spin,
+                    wins,
+                    losses,
+                    winRate
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

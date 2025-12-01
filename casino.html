@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Казино</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a3a, #0d1520);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0 30px;
+            border-bottom: 2px solid #2a3b4d;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0b3c6;
+        }
+        
+        .user-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .balance-box {
+            background: linear-gradient(135deg, #2a3b4d, #1a2a3a);
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .balance-label {
+            font-size: 0.9rem;
+            color: #a0b3c6;
+            margin-bottom: 5px;
+        }
+        
+        .balance-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #ff8c00, #ff6a00);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #5a6b7d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .game-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .game-tab {
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .game-tab.active {
+            background: linear-gradient(to right, #ff8c00, #ff6a00);
+            box-shadow: 0 0 15px rgba(255, 140, 0, 0.5);
+        }
+        
+        .game-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            min-height: 400px;
+        }
+        
+        .slot-machine {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .slots-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .slot {
+            width: 120px;
+            height: 150px;
+            background: linear-gradient(to bottom, #2a3b4d, #1a2a3a);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .slot.spinning {
+            animation: slotSpin 0.1s infinite linear;
+        }
+        
+        @keyframes slotSpin {
+            0% { transform: translateY(-100px); }
+            100% { transform: translateY(100px); }
+        }
+        
+        .bet-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .bet-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .bet-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            padding: 0;
+        }
+        
+        .roulette-table {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .roulette-wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #1e3a1e, #0d1e0d);
+            position: relative;
+            margin: 30px 0;
+            border: 10px solid #8b4513;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+        
+        .roulette-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: #ff0000;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            z-index: 10;
+        }
+        
+        .roulette-number {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            transform-origin: center;
+        }
+        
+        .dice-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .die {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: #333;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .dice-rolling {
+            animation: diceRoll 0.5s infinite;
+        }
+        
+        @keyframes diceRoll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .bet-options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .bet-option {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .bet-option.active {
+            background: linear-gradient(to right, #ff8c00, #ff6a00);
+        }
+        
+        .bet-option:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .message-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+            border-left: 5px solid #ff8c00;
+            transform: translateX(calc(100% + 20px));
+            transition: transform 0.5s ease;
+        }
+        
+        .message-box.show {
+            transform: translateX(0);
+        }
+        
+        .message-title {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .history {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .history-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .win {
+            color: #4caf50;
+        }
+        
+        .loss {
+            color: #f44336;
+        }
+        
+        .info-text {
+            color: #a0b3c6;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .game-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .user-panel {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .slots-container {
+                gap: 10px;
+            }
+            
+            .slot {
+                width: 80px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+            
+            .roulette-wheel {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .die {
+                width: 80px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <header>
+                <h1><i class="fas fa-dice"></i> Vue Казино</h1>
+                <p class="subtitle">Играйте ответственно. Никакие реальные деньги не используются.</p>
+            </header>
+            
+            <div class="user-panel">
+                <div class="balance-box">
+                    <div class="balance-label">ВАШ БАЛАНС</div>
+                    <div class="balance-amount">{{ formatCurrency(balance) }}</div>
+                </div>
+                
+                <div class="controls">
+                    <button @click="addFunds(1000)" :disabled="isSpinning || isRolling">
+                        <i class="fas fa-coins"></i> +1000
+                    </button>
+                    <button @click="resetGame" :disabled="isSpinning || isRolling">
+                        <i class="fas fa-redo"></i> Сбросить игру
+                    </button>
+                </div>
+            </div>
+            
+            <div class="game-selector">
+                <div 
+                    class="game-tab" 
+                    :class="{active: currentGame === 'slots'}"
+                    @click="switchGame('slots')"
+                >
+                    <i class="fas fa-slot-machine"></i> Слот-машина
+                </div>
+                <div 
+                    class="game-tab" 
+                    :class="{active: currentGame === 'roulette'}"
+                    @click="switchGame('roulette')"
+                >
+                    <i class="fas fa-roulette-wheel"></i> Рулетка
+                </div>
+                <div 
+                    class="game-tab" 
+                    :class="{active: currentGame === 'dice'}"
+                    @click="switchGame('dice')"
+                >
+                    <i class="fas fa-dice-six"></i> Игра в кости
+                </div>
+            </div>
+            
+            <div class="game-container">
+                <!-- Слот-машина -->
+                <div class="slot-machine" v-if="currentGame === 'slots'">
+                    <h2>Слот-машина</h2>
+                    <p>Выигрыш, если все три символа совпадают</p>
+                    
+                    <div class="slots-container">
+                        <div class="slot" :class="{spinning: isSpinning}">
+                            {{ isSpinning ? '' : slots[0] }}
+                        </div>
+                        <div class="slot" :class="{spinning: isSpinning}">
+                            {{ isSpinning ? '' : slots[1] }}
+                        </div>
+                        <div class="slot" :class="{spinning: isSpinning}">
+                            {{ isSpinning ? '' : slots[2] }}
+                        </div>
+                    </div>
+                    
+                    <div class="bet-controls">
+                        <button class="bet-button" @click="decreaseBet" :disabled="isSpinning || bet <= 10">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <div class="bet-amount">{{ formatCurrency(bet) }}</div>
+                        <button class="bet-button" @click="increaseBet" :disabled="isSpinning || bet >= balance">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <button @click="playSlots" :disabled="isSpinning || bet > balance || bet <= 0">
+                        <i class="fas fa-play"></i> {{ isSpinning ? 'Крутим...' : 'Крутить!' }}
+                    </button>
+                </div>
+                
+                <!-- Рулетка -->
+                <div class="roulette-game" v-if="currentGame === 'roulette'">
+                    <div class="roulette-table">
+                        <h2>Рулетка</h2>
+                        <p>Ставьте на чётное/нечётное или конкретное число</p>
+                        
+                        <div class="roulette-wheel">
+                            <div class="roulette-pointer"></div>
+                            <div 
+                                v-for="number in rouletteNumbers" 
+                                :key="number"
+                                class="roulette-number"
+                                :style="{
+                                    backgroundColor: getRouletteColor(number),
+                                    transform: `rotate(${number * 9.73}deg) translate(140px) rotate(-${number * 9.73}deg)`
+                                }"
+                            >
+                                {{ number }}
+                            </div>
+                        </div>
+                        
+                        <div class="bet-options">
+                            <div 
+                                class="bet-option" 
+                                :class="{active: rouletteBet.type === 'even'}"
+                                @click="placeRouletteBet('even', bet)"
+                            >
+                                Чётное (x2)
+                            </div>
+                            <div 
+                                class="bet-option" 
+                                :class="{active: rouletteBet.type === 'odd'}"
+                                @click="placeRouletteBet('odd', bet)"
+                            >
+                                Нечётное (x2)
+                            </div>
+                            <div 
+                                class="bet-option" 
+                                :class="{active: rouletteBet.type === 'number'}"
+                                @click="selectNumberBet"
+                            >
+                                Число (x10)
+                            </div>
+                        </div>
+                        
+                        <div v-if="rouletteBet.type === 'number'" class="number-selection">
+                            <p>Выберите число от 0 до 36:</p>
+                            <div class="bet-controls">
+                                <button class="bet-button" @click="changeRouletteNumber(-1)" :disabled="isSpinning">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <div class="bet-amount">{{ rouletteBet.number }}</div>
+                                <button class="bet-button" @click="changeRouletteNumber(1)" :disabled="isSpinning">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="bet-controls" style="margin-top: 20px;">
+                            <button class="bet-button" @click="decreaseBet" :disabled="isSpinning || bet <= 10">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="bet-amount">{{ formatCurrency(bet) }}</div>
+                            <button class="bet-button" @click="increaseBet" :disabled="isSpinning || bet >= balance">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        
+                        <button @click="playRoulette" :disabled="isSpinning || bet > balance || bet <= 0 || !rouletteBet.type">
+                            <i class="fas fa-play"></i> {{ isSpinning ? 'Крутим...' : 'Крутить рулетку!' }}
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Игра в кости -->
+                <div class="dice-game" v-if="currentGame === 'dice'">
+                    <h2>Игра в кости</h2>
+                    <p>Угадайте, будет ли сумма больше 7, меньше 7 или равна 7</p>
+                    
+                    <div class="dice-container">
+                        <div class="die" :class="{ 'dice-rolling': isRolling }">
+                            {{ isRolling ? '?' : dice1 }}
+                        </div>
+                        <div class="die" :class="{ 'dice-rolling': isRolling }">
+                            {{ isRolling ? '?' : dice2 }}
+                        </div>
+                    </div>
+                    
+                    <div class="bet-options">
+                        <div 
+                            class="bet-option" 
+                            :class="{active: diceBet === 'less'}"
+                            @click="diceBet = 'less'"
+                        >
+                            Меньше 7 (x2)
+                        </div>
+                        <div 
+                            class="bet-option" 
+                            :class="{active: diceBet === 'seven'}"
+                            @click="diceBet = 'seven'"
+                        >
+                            Равно 7 (x5)
+                        </div>
+                        <div 
+                            class="bet-option" 
+                            :class="{active: diceBet === 'greater'}"
+                            @click="diceBet = 'greater'"
+                        >
+                            Больше 7 (x2)
+                        </div>
+                    </div>
+                    
+                    <div class="bet-controls" style="margin-top: 20px;">
+                        <button class="bet-button" @click="decreaseBet" :disabled="isRolling || bet <= 10">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <div class="bet-amount">{{ formatCurrency(bet) }}</div>
+                        <button class="bet-button" @click="increaseBet" :disabled="isRolling || bet >= balance">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <button @click="playDice" :disabled="isRolling || bet > balance || bet <= 0 || !diceBet">
+                        <i class="fas fa-play"></i> {{ isRolling ? 'Бросаем...' : 'Бросить кости!' }}
+                    </button>
+                </div>
+            </div>
+            
+            <div class="history">
+                <div class="history-title">
+                    <i class="fas fa-history"></i> История игр
+                </div>
+                <div class="history-list">
+                    <div 
+                        v-for="(item, index) in gameHistory" 
+                        :key="index"
+                        class="history-item"
+                        :class="item.win ? 'win' : 'loss'"
+                    >
+                        <span>{{ item.game }}: {{ item.description }}</span>
+                        <span>{{ item.win ? '+' : '-' }}{{ formatCurrency(item.amount) }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="info-text">
+                Это демонстрационное казино создано с использованием Vue.js. Все выигрыши и проигрыши виртуальные.
+                Играйте ответственно!
+            </p>
+        </div>
+        
+        <div class="sound-toggle" @click="soundEnabled = !soundEnabled">
+            <i class="fas" :class="soundEnabled ? 'fa-volume-up' : 'fa-volume-mute'"></i>
+        </div>
+        
+        <div class="message-box" :class="{show: showMessage}">
+            <div class="message-title">{{ messageTitle }}</div>
+            <div>{{ messageText }}</div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+        
+        createApp({
+            setup() {
+                // Состояние игрока
+                const balance = ref(1000);
+                const bet = ref(100);
+                
+                // Состояние игр
+                const currentGame = ref('slots');
+                const isSpinning = ref(false);
+                const isRolling = ref(false);
+                
+                // Слот-машина
+                const slots = ref(['🍒', '🍋', '🍊']);
+                const slotSymbols = ['🍒', '🍋', '🍊', '⭐', '🔔', '7️⃣'];
+                
+                // Рулетка
+                const rouletteNumbers = Array.from({length: 37}, (_, i) => i); // 0-36
+                const rouletteBet = ref({ type: null, number: 0 });
+                const rouletteResult = ref(null);
+                
+                // Кости
+                const dice1 = ref(1);
+                const dice2 = ref(1);
+                const diceBet = ref(null);
+                
+                // История и сообщения
+                const gameHistory = ref([]);
+                const showMessage = ref(false);
+                const messageTitle = ref('');
+                const messageText = ref('');
+                
+                // Настройки
+                const soundEnabled = ref(true);
+                
+                // Форматирование денег
+                const formatCurrency = (amount) => {
+                    return amount.toLocaleString('ru-RU') + ' ₽';
+                };
+                
+                // Управление ставкой
+                const increaseBet = () => {
+                    if (bet.value + 10 <= balance.value) {
+                        bet.value += 10;
+                    }
+                };
+                
+                const decreaseBet = () => {
+                    if (bet.value - 10 >= 10) {
+                        bet.value -= 10;
+                    }
+                };
+                
+                const addFunds = (amount) => {
+                    balance.value += amount;
+                    showMessageFunc('Пополнение баланса', `На ваш счет добавлено ${formatCurrency(amount)}`);
+                };
+                
+                // Переключение игры
+                const switchGame = (game) => {
+                    currentGame.value = game;
+                    resetBets();
+                };
+                
+                const resetBets = () => {
+                    rouletteBet.value = { type: null, number: 0 };
+                    diceBet.value = null;
+                };
+                
+                // Слот-машина
+                const playSlots = () => {
+                    if (bet.value > balance.value || bet.value <= 0 || isSpinning.value) return;
+                    
+                    // Снимаем ставку
+                    balance.value -= bet.value;
+                    isSpinning.value = true;
+                    
+                    // Имитация вращения
+                    setTimeout(() => {
+                        // Генерируем случайные символы
+                        slots.value = [
+                            slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+                            slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+                            slotSymbols[Math.floor(Math.random() * slotSymbols.length)]
+                        ];
+                        
+                        // Проверяем выигрыш
+                        const isWin = slots.value[0] === slots.value[1] && slots.value[1] === slots.value[2];
+                        let winAmount = 0;
+                        let description = `Слоты: ${slots.value.join(' ')}`;
+                        
+                        if (isWin) {
+                            // Разные коэффициенты для разных символов
+                            const multipliers = {
+                                '🍒': 3,
+                                '🍋': 5,
+                                '🍊': 5,
+                                '⭐': 10,
+                                '🔔': 15,
+                                '7️⃣': 20
+                            };
+                            
+                            const multiplier = multipliers[slots.value[0]] || 5;
+                            winAmount = bet.value * multiplier;
+                            balance.value += winAmount;
+                            
+                            description += ` - ВЫИГРЫШ x${multiplier}!`;
+                            showMessageFunc('ДЖЕКПОТ!', `Вы выиграли ${formatCurrency(winAmount)}!`);
+                        } else {
+                            description += ' - Проигрыш';
+                            showMessageFunc('Повезет в следующий раз!', 'Попробуйте еще раз!');
+                        }
+                        
+                        // Добавляем в историю
+                        gameHistory.value.unshift({
+                            game: 'Слот-машина',
+                            description,
+                            amount: isWin ? winAmount : bet.value,
+                            win: isWin,
+                            timestamp: new Date()
+                        });
+                        
+                        isSpinning.value = false;
+                    }, 1000);
+                };
+                
+                // Рулетка
+                const getRouletteColor = (number) => {
+                    if (number === 0) return '#008000'; // Зеленый для 0
+                    return number % 2 === 0 ? '#ff0000' : '#000000'; // Красный для четных, черный для нечетных
+                };
+                
+                const placeRouletteBet = (type, amount) => {
+                    if (isSpinning.value) return;
+                    rouletteBet.value = { type, number: type === 'number' ? 0 : null };
+                };
+                
+                const selectNumberBet = () => {
+                    if (isSpinning.value) return;
+                    rouletteBet.value = { type: 'number', number: 0 };
+                };
+                
+                const changeRouletteNumber = (delta) => {
+                    if (isSpinning.value || rouletteBet.value.type !== 'number') return;
+                    
+                    let newNumber = rouletteBet.value.number + delta;
+                    if (newNumber < 0) newNumber = 36;
+                    if (newNumber > 36) newNumber = 0;
+                    
+                    rouletteBet.value.number = newNumber;
+                };
+                
+                const playRoulette = () => {
+                    if (bet.value > balance.value || bet.value <= 0 || isSpinning.value || !rouletteBet.value.type) return;
+                    
+                    // Снимаем ставку
+                    balance.value -= bet.value;
+                    isSpinning.value = true;
+                    rouletteResult.value = null;
+                    
+                    // Имитация вращения рулетки
+                    setTimeout(() => {
+                        // Генерируем случайное число от 0 до 36
+                        const result = Math.floor(Math.random() * 37);
+                        rouletteResult.value = result;
+                        
+                        // Проверяем выигрыш
+                        let isWin = false;
+                        let winAmount = 0;
+                        let description = `Рулетка: выпало ${result}. Ставка: ${rouletteBet.value.type}`;
+                        
+                        if (rouletteBet.value.type === 'even') {
+                            isWin = result !== 0 && result % 2 === 0;
+                            winAmount = isWin ? bet.value * 2 : 0;
+                        } else if (rouletteBet.value.type === 'odd') {
+                            isWin = result % 2 === 1;
+                            winAmount = isWin ? bet.value * 2 : 0;
+                        } else if (rouletteBet.value.type === 'number') {
+                            isWin = result === rouletteBet.value.number;
+                            winAmount = isWin ? bet.value * 10 : 0;
+                        }
+                        
+                        if (isWin) {
+                            balance.value += winAmount;
+                            description += ` - ВЫИГРЫШ x${winAmount / bet.value}!`;
+                            showMessageFunc('Победа!', `Вы выиграли ${formatCurrency(winAmount)}!`);
+                        } else {
+                            description += ' - Проигрыш';
+                            showMessageFunc('Не повезло', 'Попробуйте еще раз!');
+                        }
+                        
+                        // Добавляем в историю
+                        gameHistory.value.unshift({
+                            game: 'Рулетка',
+                            description,
+                            amount: isWin ? winAmount : bet.value,
+                            win: isWin,
+                            timestamp: new Date()
+                        });
+                        
+                        isSpinning.value = false;
+                    }, 1500);
+                };
+                
+                // Кости
+                const playDice = () => {
+                    if (bet.value > balance.value || bet.value <= 0 || isRolling.value || !diceBet.value) return;
+                    
+                    // Снимаем ставку
+                    balance.value -= bet.value;
+                    isRolling.value = true;
+                    
+                    // Имитация броска костей
+                    setTimeout(() => {
+                        // Генерируем случайные значения костей
+                        dice1.value = Math.floor(Math.random() * 6) + 1;
+                        dice2.value = Math.floor(Math.random() * 6) + 1;
+                        
+                        const sum = dice1.value + dice2.value;
+                        
+                        // Проверяем выигрыш
+                        let isWin = false;
+                        let winAmount = 0;
+                        let description = `Кости: ${dice1.value} + ${dice2.value} = ${sum}. Ставка: ${diceBet.value}`;
+                        
+                        if (diceBet.value === 'less') {
+                            isWin = sum < 7;
+                            winAmount = isWin ? bet.value * 2 : 0;
+                        } else if (diceBet.value === 'seven') {
+                            isWin = sum === 7;
+                            winAmount = isWin ? bet.value * 5 : 0;
+                        } else if (diceBet.value === 'greater') {
+                            isWin = sum > 7;
+                            winAmount = isWin ? bet.value * 2 : 0;
+                        }
+                        
+                        if (isWin) {
+                            balance.value += winAmount;
+                            description += ` - ВЫИГРЫШ x${winAmount / bet.value}!`;
+                            showMessageFunc('Победа!', `Вы выиграли ${formatCurrency(winAmount)}!`);
+                        } else {
+                            description += ' - Проигрыш';
+                            showMessageFunc('Не повезло', 'Попробуйте еще раз!');
+                        }
+                        
+                        // Добавляем в историю
+                        gameHistory.value.unshift({
+                            game: 'Кости',
+                            description,
+                            amount: isWin ? winAmount : bet.value,
+                            win: isWin,
+                            timestamp: new Date()
+                        });
+                        
+                        isRolling.value = false;
+                    }, 1000);
+                };
+                
+                // Показ сообщений
+                const showMessageFunc = (title, text) => {
+                    messageTitle.value = title;
+                    messageText.value = text;
+                    showMessage.value = true;
+                    
+                    setTimeout(() => {
+                        showMessage.value = false;
+                    }, 3000);
+                };
+                
+                // Сброс игры
+                const resetGame = () => {
+                    balance.value = 1000;
+                    bet.value = 100;
+                    gameHistory.value = [];
+                    resetBets();
+                    showMessageFunc('Игра сброшена', 'Начните игру заново!');
+                };
+                
+                // Инициализация
+                resetBets();
+                
+                return {
+                    balance,
+                    bet,
+                    currentGame,
+                    isSpinning,
+                    isRolling,
+                    slots,
+                    slotSymbols,
+                    rouletteNumbers,
+                    rouletteBet,
+                    rouletteResult,
+                    dice1,
+                    dice2,
+                    diceBet,
+                    gameHistory,
+                    showMessage,
+                    messageTitle,
+                    messageText,
+                    soundEnabled,
+                    formatCurrency,
+                    increaseBet,
+                    decreaseBet,
+                    addFunds,
+                    switchGame,
+                    playSlots,
+                    getRouletteColor,
+                    placeRouletteBet,
+                    selectNumberBet,
+                    changeRouletteNumber,
+                    playRoulette,
+                    playDice,
+                    showMessageFunc,
+                    resetGame
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
