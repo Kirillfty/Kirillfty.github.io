@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Растения против Зомби - Слот казино</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(to bottom, #0a3d2e, #1a5c3e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        #app {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border: 5px solid #e6b325;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #e6b325;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            color: #7cfc00;
+            text-shadow: 3px 3px 0 #2a5c0a, 0 0 10px #00ff00;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #e6b325;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .slot-machine {
+            background: linear-gradient(to bottom, #1e6b4e, #0d422f);
+            border-radius: 15px;
+            padding: 20px;
+            border: 3px solid #e6b325;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
+        }
+        
+        .paylines {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 0 auto 20px;
+        }
+        
+        .reels-container {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .reel {
+            height: 90px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid #4a7c59;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-size: 2.5rem;
+            transition: all 0.3s;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        
+        .reel.spinning {
+            animation: spin 0.15s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-20px); }
+        }
+        
+        .payline {
+            position: absolute;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.7);
+            width: 100%;
+            left: 0;
+            z-index: 1;
+            border-radius: 2px;
+        }
+        
+        .payline.active {
+            background: #ffcc00;
+            box-shadow: 0 0 10px #ffcc00;
+            z-index: 3;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-spin {
+            background: linear-gradient(to bottom, #e6b325, #c89411);
+            color: #2a2a2a;
+            flex-grow: 1;
+        }
+        
+        .btn-spin:hover {
+            background: linear-gradient(to bottom, #f8c537, #daa520);
+            transform: scale(1.05);
+        }
+        
+        .btn-spin:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-bet {
+            background: linear-gradient(to bottom, #4a7c59, #2a5c3a);
+            color: white;
+        }
+        
+        .btn-bet:hover {
+            background: linear-gradient(to bottom, #5a8c69, #3a6c4a);
+        }
+        
+        .btn-bonus {
+            background: linear-gradient(to bottom, #ff4444, #cc2222);
+            color: white;
+        }
+        
+        .btn-bonus:hover {
+            background: linear-gradient(to bottom, #ff5555, #dd3333);
+        }
+        
+        .panel {
+            background: linear-gradient(to bottom, #2a5c3a, #1a4c2a);
+            border-radius: 15px;
+            padding: 20px;
+            border: 3px solid #e6b325;
+        }
+        
+        .balance-info {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4a7c59;
+        }
+        
+        .balance-amount {
+            font-size: 2.5rem;
+            color: #e6b325;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .bet-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .bet-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .bet-amount {
+            font-size: 1.8rem;
+            color: #e6b325;
+            font-weight: bold;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+        }
+        
+        .info-section h3 {
+            color: #7cfc00;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            border-bottom: 1px solid #4a7c59;
+            padding-bottom: 5px;
+        }
+        
+        .info-section p {
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        
+        .win-message {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #e6b325;
+            font-weight: bold;
+            margin: 15px 0;
+            height: 40px;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .bonus-round {
+            background: linear-gradient(to bottom, #8b0000, #660000);
+            border: 3px solid #ffcc00;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px #ffcc00; }
+            50% { box-shadow: 0 0 20px #ffcc00; }
+            100% { box-shadow: 0 0 5px #ffcc00; }
+        }
+        
+        .bonus-round h3 {
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+        
+        .bonus-counter {
+            font-size: 2rem;
+            color: #fff;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .symbols-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .symbol-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .symbol-icon {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .zombie { color: #2a9d8f; }
+        .pea { color: #7cfc00; }
+        .sunflower { color: #e6b325; }
+        .wallnut { color: #8b4513; }
+        .cherry { color: #ff4444; }
+        .jalapeno { color: #ff6b35; }
+        .corn { color: #ffd700; }
+        .gatling { color: #4682b4; }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #4a7c59;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .winning-line {
+            animation: blink 0.5s infinite alternate;
+        }
+        
+        @keyframes blink {
+            from { background-color: rgba(255, 204, 0, 0.3); }
+            to { background-color: rgba(255, 204, 0, 0.7); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1><i class="fas fa-leaf"></i> Растения против Зомби <i class="fas fa-skull-crossbones"></i></h1>
+            <div class="subtitle">Слот-машина 8x3 с 5 линиями выплат</div>
+        </div>
+        
+        <div class="game-container">
+            <div class="slot-machine">
+                <div class="paylines">
+                    <!-- Линии выплат -->
+                    <div class="payline" :style="{top: '20%'}" :class="{active: winningLines.includes(1)}"></div>
+                    <div class="payline" :style="{top: '50%'}" :class="{active: winningLines.includes(2)}"></div>
+                    <div class="payline" :style="{top: '80%'}" :class="{active: winningLines.includes(3)}"></div>
+                    <div class="payline" :style="{top: '20%', transform: 'rotate(3deg)'}" :class="{active: winningLines.includes(4)}"></div>
+                    <div class="payline" :style="{top: '80%', transform: 'rotate(-3deg)'}" :class="{active: winningLines.includes(5)}"></div>
+                    
+                    <!-- Барабаны -->
+                    <div class="reels-container">
+                        <div v-for="(reel, reelIndex) in reels" :key="reelIndex" class="reel" :class="{spinning: isSpinning, 'winning-line': isWinningReel(reelIndex)}">
+                            {{ getSymbolDisplay(reel.symbols[reel.position]) }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="win-message">
+                    {{ winMessage }}
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-bet" @click="changeBet(-10)" :disabled="isSpinning || bet <= 10">
+                        <i class="fas fa-minus"></i> Ставка
+                    </button>
+                    
+                    <button class="btn btn-spin" @click="spin" :disabled="isSpinning || balance < bet">
+                        <i class="fas fa-play"></i> {{ isSpinning ? 'Крутим...' : 'Крутить!' }}
+                    </button>
+                    
+                    <button class="btn btn-bet" @click="changeBet(10)" :disabled="isSpinning">
+                        Ставка <i class="fas fa-plus"></i>
+                    </button>
+                    
+                    <button class="btn btn-bonus" @click="activateBonus" :disabled="isSpinning || freeSpins > 0 || !canActivateBonus">
+                        <i class="fas fa-gift"></i> Бонус
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="balance-info">
+                    <h3>Ваш баланс</h3>
+                    <div class="balance-amount">{{ balance }} <i class="fas fa-coins"></i></div>
+                    <div>Бесплатных вращений: {{ freeSpins }}</div>
+                </div>
+                
+                <div class="bet-info">
+                    <div>
+                        <h4>Текущая ставка</h4>
+                        <div class="bet-amount">{{ bet }} <i class="fas fa-coins"></i></div>
+                    </div>
+                    <div class="bet-controls">
+                        <button class="btn btn-bet" @click="changeBet(-1)" :disabled="isSpinning || bet <= 1">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="btn btn-bet" @click="changeBet(1)" :disabled="isSpinning">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div v-if="freeSpins > 0" class="bonus-round">
+                    <h3><i class="fas fa-gift"></i> БОНУСНЫЙ РАУНД!</h3>
+                    <p>Бесплатные вращения с увеличенными выплатами!</p>
+                    <div class="bonus-counter">Осталось вращений: {{ freeSpins }}</div>
+                    <p>Все выигрыши умножены на 3x!</p>
+                </div>
+                
+                <div class="info-section">
+                    <h3>Символы и выплаты</h3>
+                    <div class="symbols-info">
+                        <div v-for="symbol in symbols" :key="symbol.id" class="symbol-item">
+                            <div class="symbol-icon" :class="symbol.class">{{ symbol.icon }}</div>
+                            <div>{{ symbol.name }}</div>
+                            <div>x{{ symbol.multiplier }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3>Линии выплат</h3>
+                    <p>Всего 5 линий выплат. Выигрыш считается при совпадении 3+ одинаковых символов на линии.</p>
+                    <p>Бонусный символ <span class="symbol-icon corn"><i class="fas fa-bomb"></i></span> запускает бонусный раунд с бесплатными вращениями.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Игра "Растения против Зомби" - тематический слот казино. 8 барабанов, 3 строки, 5 линий выплат.</p>
+            <p>Игра предназначена только для развлечения. Удачи!</p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+        
+        createApp({
+            setup() {
+                // Состояние игры
+                const balance = ref(1000);
+                const bet = ref(20);
+                const isSpinning = ref(false);
+                const winMessage = ref('Сделайте ставку и крутите барабаны!');
+                const winningLines = ref([]);
+                const freeSpins = ref(0);
+                const bonusMultiplier = ref(1);
+                const bonusSymbolsCount = ref(0);
+                
+                // Определение символов
+                const symbols = ref([
+                    { id: 1, name: 'Зомби', icon: '🧟', multiplier: 5, class: 'zombie' },
+                    { id: 2, name: 'Стрелок', icon: '🌱', multiplier: 4, class: 'pea' },
+                    { id: 3, name: 'Подсолнух', icon: '🌻', multiplier: 3, class: 'sunflower' },
+                    { id: 4, name: 'Орех', icon: '🥜', multiplier: 2, class: 'wallnut' },
+                    { id: 5, name: 'Вишня', icon: '💣', multiplier: 6, class: 'cherry' },
+                    { id: 6, name: 'Халапеньо', icon: '🌶️', multiplier: 8, class: 'jalapeno' },
+                    { id: 7, name: 'Кукуруза', icon: '🌽', multiplier: 10, class: 'corn' },
+                    { id: 8, name: 'Гатлинг', icon: '🔫', multiplier: 15, class: 'gatling' }
+                ]);
+                
+                // Определение барабанов
+                const reels = ref([
+                    { position: 0, symbols: [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4] },
+                    { position: 1, symbols: [2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5] },
+                    { position: 2, symbols: [3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6] },
+                    { position: 0, symbols: [4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7] },
+                    { position: 1, symbols: [5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8] },
+                    { position: 2, symbols: [6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1] },
+                    { position: 0, symbols: [7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2] },
+                    { position: 1, symbols: [8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3] }
+                ]);
+                
+                // Определение линий выплат (индексы символов на каждом барабане)
+                const paylines = ref([
+                    [0, 0, 0, 0, 0, 0, 0, 0], // Линия 1 (верхняя)
+                    [1, 1, 1, 1, 1, 1, 1, 1], // Линия 2 (средняя)
+                    [2, 2, 2, 2, 2, 2, 2, 2], // Линия 3 (нижняя)
+                    [0, 1, 2, 1, 0, 1, 2, 1], // Линия 4 (зигзаг)
+                    [2, 1, 0, 1, 2, 1, 0, 1]  // Линия 5 (зигзаг)
+                ]);
+                
+                // Получение отображения символа
+                const getSymbolDisplay = (symbolId) => {
+                    const symbol = symbols.value.find(s => s.id === symbolId);
+                    return symbol ? symbol.icon : '?';
+                };
+                
+                // Получение класса символа
+                const getSymbolClass = (symbolId) => {
+                    const symbol = symbols.value.find(s => s.id === symbolId);
+                    return symbol ? symbol.class : '';
+                };
+                
+                // Изменение ставки
+                const changeBet = (amount) => {
+                    const newBet = bet.value + amount;
+                    if (newBet >= 1 && newBet <= 100) {
+                        bet.value = newBet;
+                    }
+                };
+                
+                // Проверка, является ли барабан частью выигрышной линии
+                const isWinningReel = (reelIndex) => {
+                    return winningLines.value.some(line => {
+                        const lineIndex = winningLines.value.indexOf(line);
+                        return paylines.value[lineIndex - 1] && paylines.value[lineIndex - 1][reelIndex] === reels.value[reelIndex].position;
+                    });
+                };
+                
+                // Запуск вращения
+                const spin = () => {
+                    if (isSpinning.value || balance.value < bet.value) return;
+                    
+                    // Сброс состояния
+                    isSpinning.value = true;
+                    winMessage.value = '';
+                    winningLines.value = [];
+                    bonusSymbolsCount.value = 0;
+                    
+                    // Использовать ли бесплатное вращение
+                    if (freeSpins.value > 0) {
+                        freeSpins.value--;
+                    } else {
+                        balance.value -= bet.value;
+                    }
+                    
+                    // Вращение каждого барабана
+                    reels.value.forEach((reel, index) => {
+                        // Анимация вращения
+                        setTimeout(() => {
+                            // Случайная остановка на символе
+                            const spinTime = 500 + index * 100;
+                            setTimeout(() => {
+                                reel.position = Math.floor(Math.random() * 3);
+                                
+                                // Если все барабаны остановились, проверяем выигрыши
+                                if (index === reels.value.length - 1) {
+                                    setTimeout(() => {
+                                        checkWins();
+                                        isSpinning.value = false;
+                                        
+                                        // Если есть бесплатные вращения, запускаем следующее
+                                        if (freeSpins.value > 0) {
+                                            setTimeout(() => {
+                                                spin();
+                                            }, 1500);
+                                        }
+                                    }, 300);
+                                }
+                            }, spinTime);
+                        }, index * 100);
+                    });
+                };
+                
+                // Проверка выигрышных комбинаций
+                const checkWins = () => {
+                    let totalWin = 0;
+                    let winningLinesArray = [];
+                    bonusSymbolsCount.value = 0;
+                    
+                    // Проверяем каждую линию
+                    paylines.value.forEach((line, lineIndex) => {
+                        // Получаем символы на текущей линии
+                        const lineSymbols = line.map((rowIndex, reelIndex) => {
+                            const reel = reels.value[reelIndex];
+                            return reel.symbols[reel.position + rowIndex];
+                        });
+                        
+                        // Проверяем, есть ли бонусные символы на линии
+                        if (lineSymbols.includes(7)) { // Символ кукурузы (бонус)
+                            bonusSymbolsCount.value++;
+                        }
+                        
+                        // Ищем совпадения
+                        let matchCount = 1;
+                        let currentSymbol = lineSymbols[0];
+                        
+                        for (let i = 1; i < lineSymbols.length; i++) {
+                            if (lineSymbols[i] === currentSymbol) {
+                                matchCount++;
+                            } else {
+                                break;
+                            }
+                        }
+                        
+                        // Если есть совпадение 3+ символов
+                        if (matchCount >= 3) {
+                            const symbol = symbols.value.find(s => s.id === currentSymbol);
+                            if (symbol) {
+                                // Выигрыш = множитель * ставка * бонусный множитель
+                                const winAmount = symbol.multiplier * bet.value * bonusMultiplier.value * (matchCount - 2);
+                                totalWin += winAmount;
+                                winningLinesArray.push(lineIndex + 1);
+                                
+                                winMessage.value = `Выигрыш по линии ${lineIndex + 1}: ${winAmount}!`;
+                            }
+                        }
+                    });
+                    
+                    // Если есть выигрыш, добавляем к балансу
+                    if (totalWin > 0) {
+                        balance.value += totalWin;
+                        winningLines.value = winningLinesArray;
+                        
+                        if (winningLinesArray.length > 1) {
+                            winMessage.value = `Вы выиграли ${totalWin} по ${winningLinesArray.length} линиям!`;
+                        }
+                    } else if (bonusSymbolsCount.value >= 2) {
+                        winMessage.value = '2+ бонусных символа! Активируйте бонусный раунд!';
+                    } else {
+                        winMessage.value = 'Повезёт в следующий раз!';
+                    }
+                };
+                
+                // Активация бонусного раунда
+                const activateBonus = () => {
+                    if (bonusSymbolsCount.value < 2 || freeSpins.value > 0) return;
+                    
+                    // Количество бесплатных вращений зависит от количества бонусных символов
+                    freeSpins.value = 5 + (bonusSymbolsCount.value - 2) * 2;
+                    bonusMultiplier.value = 3;
+                    winMessage.value = `Бонусный раунд! ${freeSpins.value} бесплатных вращений с множителем x3!`;
+                };
+                
+                // Можно ли активировать бонус
+                const canActivateBonus = computed(() => {
+                    return bonusSymbolsCount.value >= 2;
+                });
+                
+                // Отслеживание изменений баланса
+                watch(balance, (newValue) => {
+                    if (newValue <= 0) {
+                        winMessage.value = 'Баланс исчерпан! Игра перезапускается...';
+                        setTimeout(() => {
+                            balance.value = 1000;
+                            bet.value = 20;
+                            winMessage.value = 'Баланс пополнен! Удачи!';
+                        }, 2000);
+                    }
+                });
+                
+                return {
+                    balance,
+                    bet,
+                    isSpinning,
+                    winMessage,
+                    winningLines,
+                    freeSpins,
+                    symbols,
+                    reels,
+                    paylines,
+                    getSymbolDisplay,
+                    getSymbolClass,
+                    changeBet,
+                    spin,
+                    activateBonus,
+                    canActivateBonus,
+                    isWinningReel,
+                    bonusSymbolsCount
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
