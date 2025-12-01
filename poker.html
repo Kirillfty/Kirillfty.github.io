@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Покер с ботами - Техасский Холдем</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a3d2e, #1a5c3e);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        #app {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            border: 3px solid #e6b325;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            color: #e6b325;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .poker-table {
+            background: radial-gradient(circle, #2a5c3a, #1a4c2a);
+            border-radius: 20px;
+            padding: 30px;
+            border: 5px solid #e6b325;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            position: relative;
+            min-height: 600px;
+        }
+        
+        .community-cards {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0 50px;
+            min-height: 150px;
+        }
+        
+        .card-slot {
+            width: 100px;
+            height: 140px;
+            background: linear-gradient(145deg, #1e6b4e, #0d422f);
+            border-radius: 10px;
+            border: 2px solid #e6b325;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+        
+        .card-slot.face-up {
+            background: white;
+            color: black;
+        }
+        
+        .card-slot:hover {
+            transform: translateY(-5px);
+        }
+        
+        .players-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .players-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .player {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            border: 3px solid;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .player.active {
+            border-color: #ffcc00;
+            box-shadow: 0 0 20px #ffcc00;
+        }
+        
+        .player.folded {
+            opacity: 0.6;
+            border-color: #666;
+        }
+        
+        .player-1 { border-color: #ff6b6b; }
+        .player-2 { border-color: #4ecdc4; }
+        .player-3 { border-color: #ffe66d; }
+        .player-4 { border-color: #9b5de5; }
+        
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .player-name.you::after {
+            content: " (Вы)";
+            color: #ffcc00;
+        }
+        
+        .player-chips {
+            color: #e6b325;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        
+        .player-cards {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        
+        .player-card {
+            width: 60px;
+            height: 85px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .player-card.face-up {
+            background: white;
+            color: black;
+        }
+        
+        .player-card.hidden {
+            background: linear-gradient(145deg, #8b0000, #660000);
+            color: transparent;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+        
+        .player-status {
+            text-align: center;
+            font-style: italic;
+            color: #aaa;
+            min-height: 24px;
+        }
+        
+        .player-bet {
+            position: absolute;
+            top: -15px;
+            right: 10px;
+            background: #e6b325;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .game-controls {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            border: 3px solid #4a7c59;
+        }
+        
+        .player-controls {
+            background: rgba(30, 60, 30, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-check {
+            background: linear-gradient(to bottom, #4ecdc4, #2a9d8f);
+            color: white;
+        }
+        
+        .btn-call {
+            background: linear-gradient(to bottom, #4a7c59, #2a5c3a);
+            color: white;
+        }
+        
+        .btn-raise {
+            background: linear-gradient(to bottom, #e6b325, #c89411);
+            color: #222;
+        }
+        
+        .btn-fold {
+            background: linear-gradient(to bottom, #ff6b6b, #cc4444);
+            color: white;
+        }
+        
+        .btn-start {
+            background: linear-gradient(to bottom, #9b5de5, #7b3dc4);
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .bet-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .bet-amount {
+            font-size: 1.8rem;
+            color: #e6b325;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .pot-info {
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(139, 0, 0, 0.7);
+            border-radius: 10px;
+            border: 2px solid #e6b325;
+        }
+        
+        .pot-amount {
+            font-size: 2.5rem;
+            color: #e6b325;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .game-log {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            color: #ccc;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-entry.new {
+            color: #ffcc00;
+            animation: highlight 1s;
+        }
+        
+        @keyframes highlight {
+            0% { background: rgba(255, 204, 0, 0.2); }
+            100% { background: transparent; }
+        }
+        
+        .hand-rankings {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .hand-rankings h3 {
+            color: #e6b325;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+        
+        .game-phase {
+            text-align: center;
+            font-size: 1.4rem;
+            color: #ffcc00;
+            margin: 15px 0;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+        }
+        
+        .winner-announcement {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 5px solid #e6b325;
+            text-align: center;
+            z-index: 1000;
+            animation: winnerPopup 0.5s;
+            min-width: 500px;
+        }
+        
+        @keyframes winnerPopup {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        .winner-announcement h2 {
+            color: #e6b325;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .winner-hand {
+            font-size: 1.3rem;
+            color: #ffcc00;
+            margin: 15px 0;
+        }
+        
+        .winner-prize {
+            font-size: 2rem;
+            color: #7cfc00;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .card-red {
+            color: #ff4444;
+        }
+        
+        .card-black {
+            color: #000;
+        }
+        
+        .bot-difficulty {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .difficulty-btn {
+            padding: 8px 15px;
+            background: #444;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .difficulty-btn.active {
+            background: #4a7c59;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #4a7c59;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1><i class="fas fa-club"></i> ТЕХАССКИЙ ХОЛДЕМ <i class="fas fa-spade"></i></h1>
+            <div class="subtitle">Покер против ботов • Блайнды: {{smallBlind}}/{{bigBlind}}</div>
+        </div>
+        
+        <div class="game-container">
+            <div class="poker-table">
+                <div class="game-phase">
+                    {{ getPhaseText() }}
+                </div>
+                
+                <div class="community-cards">
+                    <div v-for="(card, index) in communityCards" :key="index" 
+                         class="card-slot" :class="{'face-up': card.faceUp}">
+                        <span v-if="card.faceUp" :class="getCardColor(card)">
+                            {{ getCardSymbol(card) }}
+                        </span>
+                        <span v-else>?</span>
+                    </div>
+                </div>
+                
+                <div class="pot-info">
+                    <div>БАНК</div>
+                    <div class="pot-amount">{{ pot }} <i class="fas fa-coins"></i></div>
+                </div>
+                
+                <div class="players-container">
+                    <div v-for="player in players" :key="player.id" 
+                         class="player" :class="[
+                            `player-${player.id}`,
+                            {active: player.isActive},
+                            {folded: player.hasFolded},
+                            {winner: player.isWinner}
+                         ]">
+                        <div class="player-info">
+                            <div class="player-name" :class="{you: player.isHuman}">
+                                {{ player.name }}
+                                <span v-if="player.isDealer"> (D)</span>
+                            </div>
+                            <div class="player-chips">
+                                {{ player.chips }} <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="player-cards">
+                            <div v-for="(card, index) in player.cards" :key="index" 
+                                 class="player-card" :class="[
+                                    card.faceUp ? 'face-up' : 'hidden',
+                                    getCardColor(card)
+                                 ]">
+                                <span v-if="card.faceUp || player.isHuman || gameState.showAllCards">
+                                    {{ getCardSymbol(card) }}
+                                </span>
+                                <span v-else>?</span>
+                            </div>
+                        </div>
+                        
+                        <div class="player-status">
+                            {{ getPlayerStatus(player) }}
+                        </div>
+                        
+                        <div v-if="player.currentBet > 0" class="player-bet">
+                            {{ player.currentBet }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Объявление победителя -->
+                <div v-if="winnerAnnouncement.show" class="winner-announcement">
+                    <h2>🎉 ПОБЕДИТЕЛЬ! 🎉</h2>
+                    <div style="font-size: 1.5rem; margin-bottom: 15px;">{{ winnerAnnouncement.winnerName }}</div>
+                    <div class="winner-hand" v-if="winnerAnnouncement.handRank">
+                        {{ winnerAnnouncement.handRank }}
+                    </div>
+                    <div class="winner-prize">
+                        Выигрыш: {{ winnerAnnouncement.prize }} <i class="fas fa-coins"></i>
+                    </div>
+                    <button class="btn btn-start" @click="nextRound">
+                        <i class="fas fa-redo"></i> Следующий раунд
+                    </button>
+                </div>
+            </div>
+            
+            <div class="game-controls">
+                <div class="player-controls" v-if="gameState.started && !gameState.roundOver">
+                    <h3>Ваши действия</h3>
+                    <div class="bet-controls">
+                        <button class="btn" @click="changeBetAmount(-10)" :disabled="!canRaise">-10</button>
+                        <button class="btn" @click="changeBetAmount(-5)" :disabled="!canRaise">-5</button>
+                        <div class="bet-amount">{{ currentBetAmount }}</div>
+                        <button class="btn" @click="changeBetAmount(5)" :disabled="!canRaise">+5</button>
+                        <button class="btn" @click="changeBetAmount(10)" :disabled="!canRaise">+10</button>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="btn btn-check" @click="playerAction('check')" 
+                                :disabled="!canCheck">
+                            <i class="fas fa-check"></i> Чек
+                        </button>
+                        <button class="btn btn-call" @click="playerAction('call')" 
+                                :disabled="!canCall">
+                            <i class="fas fa-phone"></i> Колл ({{ callAmount }})
+                        </button>
+                        <button class="btn btn-raise" @click="playerAction('raise')" 
+                                :disabled="!canRaise">
+                            <i class="fas fa-arrow-up"></i> Поднять ({{ currentBetAmount }})
+                        </button>
+                        <button class="btn btn-fold" @click="playerAction('fold')">
+                            <i class="fas fa-times"></i> Фолд
+                        </button>
+                    </div>
+                </div>
+                
+                <div v-else-if="!gameState.started">
+                    <h3>Настройки игры</h3>
+                    <div style="margin: 20px 0;">
+                        <label>Сложность ботов:</label>
+                        <div class="bot-difficulty">
+                            <button v-for="diff in ['Легкая', 'Средняя', 'Сложная']" 
+                                    :key="diff"
+                                    class="difficulty-btn"
+                                    :class="{active: botDifficulty === diff}"
+                                    @click="botDifficulty = diff">
+                                {{ diff }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-start" @click="startGame">
+                        <i class="fas fa-play"></i> Начать игру
+                    </button>
+                </div>
+                
+                <div class="game-log">
+                    <h3>Лог игры</h3>
+                    <div v-for="(log, index) in gameLog" :key="index" 
+                         class="log-entry" :class="{new: index === gameLog.length - 1}">
+                        {{ log }}
+                    </div>
+                </div>
+                
+                <div class="hand-rankings">
+                    <h3>Комбинации</h3>
+                    <div class="ranking-item">
+                        <span>Стрит-флеш</span>
+                        <span>Самый высокий</span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Каре</span>
+                        <span></span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Фулл-хаус</span>
+                        <span></span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Флеш</span>
+                        <span></span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Стрит</span>
+                        <span></span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Тройка</span>
+                        <span></span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Две пары</span>
+                        <span></span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Пара</span>
+                        <span></span>
+                    </div>
+                    <div class="ranking-item">
+                        <span>Старшая карта</span>
+                        <span>Самая слабая</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Техасский Холдем • 4 бота • Используйте чек, колл, поднятие или фолд для игры</p>
+            <p>Цель: выиграть все фишки соперников!</p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+        
+        createApp({
+            setup() {
+                // Константы игры
+                const suits = ['♠', '♥', '♦', '♣'];
+                const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+                const handRanks = [
+                    'Старшая карта',
+                    'Пара',
+                    'Две пары',
+                    'Тройка',
+                    'Стрит',
+                    'Флеш',
+                    'Фулл-хаус',
+                    'Каре',
+                    'Стрит-флеш',
+                    'Флеш-рояль'
+                ];
+                
+                // Состояние игры
+                const gameState = ref({
+                    started: false,
+                    roundOver: false,
+                    currentPhase: 'preflop', // preflop, flop, turn, river, showdown
+                    activePlayerIndex: 0,
+                    dealerPosition: 0,
+                    showAllCards: false
+                });
+                
+                const players = ref([
+                    { id: 1, name: 'Игрок', chips: 1000, cards: [], currentBet: 0, hasFolded: false, isActive: false, isDealer: false, isHuman: true, isWinner: false },
+                    { id: 2, name: 'Бот-1', chips: 1000, cards: [], currentBet: 0, hasFolded: false, isActive: false, isDealer: false, isHuman: false, isWinner: false },
+                    { id: 3, name: 'Бот-2', chips: 1000, cards: [], currentBet: 0, hasFolded: false, isActive: false, isDealer: false, isHuman: false, isWinner: false },
+                    { id: 4, name: 'Бот-3', chips: 1000, cards: [], currentBet: 0, hasFolded: false, isActive: false, isDealer: false, isHuman: false, isWinner: false }
+                ]);
+                
+                const communityCards = ref(Array(5).fill().map(() => ({ rank: '', suit: '', faceUp: false })));
+                const deck = ref([]);
+                const pot = ref(0);
+                const smallBlind = ref(10);
+                const bigBlind = ref(20);
+                const currentBetAmount = ref(bigBlind.value);
+                const gameLog = ref(['Добро пожаловать в покер! Нажмите "Начать игру".']);
+                const botDifficulty = ref('Средняя');
+                const winnerAnnouncement = ref({ show: false, winnerName: '', prize: 0, handRank: '' });
+                
+                // Создание колоды
+                const createDeck = () => {
+                    const newDeck = [];
+                    for (let suit of suits) {
+                        for (let rank of ranks) {
+                            newDeck.push({ rank, suit, faceUp: false });
+                        }
+                    }
+                    return shuffleDeck(newDeck);
+                };
+                
+                // Перемешивание колоды
+                const shuffleDeck = (deckArray) => {
+                    const shuffled = [...deckArray];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    return shuffled;
+                };
+                
+                // Начало игры
+                const startGame = () => {
+                    // Сброс состояния
+                    gameState.value.started = true;
+                    gameState.value.roundOver = false;
+                    gameState.value.showAllCards = false;
+                    pot.value = 0;
+                    winnerAnnouncement.value.show = false;
+                    
+                    // Сброс игроков
+                    players.value.forEach(player => {
+                        player.cards = [];
+                        player.currentBet = 0;
+                        player.hasFolded = false;
+                        player.isActive = false;
+                        player.isWinner = false;
+                    });
+                    
+                    // Создание колоды
+                    deck.value = createDeck();
+                    
+                    // Установка дилера
+                    gameState.value.dealerPosition = (gameState.value.dealerPosition + 1) % players.value.length;
+                    players.value.forEach((player, index) => {
+                        player.isDealer = index === gameState.value.dealerPosition;
+                    });
+                    
+                    // Раздача карт
+                    dealCards();
+                    
+                    // Ставки блайндов
+                    postBlinds();
+                    
+                    // Начало раунда
+                    startBettingRound();
+                    
+                    addLog('Игра началась! Раздаются карты...');
+                };
+                
+                // Раздача карт
+                const dealCards = () => {
+                    // Сброс карт сообщества
+                    communityCards.value = Array(5).fill().map(() => ({ rank: '', suit: '', faceUp: false }));
+                    
+                    // Раздача карт игрокам
+                    players.value.forEach(player => {
+                        player.cards = [
+                            deck.value.pop(),
+                            deck.value.pop()
+                        ];
+                        // Карты игрока видны сразу, ботов - нет
+                        player.cards.forEach(card => {
+                            card.faceUp = player.isHuman;
+                        });
+                    });
+                    
+                    addLog('Карты разданы');
+                };
+                
+                // Ставки блайндов
+                const postBlinds = () => {
+                    const dealerIndex = players.value.findIndex(p => p.isDealer);
+                    const smallBlindIndex = (dealerIndex + 1) % players.value.length;
+                    const bigBlindIndex = (dealerIndex + 2) % players.value.length;
+                    
+                    // Малый блайнд
+                    players.value[smallBlindIndex].chips -= smallBlind.value;
+                    players.value[smallBlindIndex].currentBet = smallBlind.value;
+                    pot.value += smallBlind.value;
+                    
+                    // Большой блайнд
+                    players.value[bigBlindIndex].chips -= bigBlind.value;
+                    players.value[bigBlindIndex].currentBet = bigBlind.value;
+                    pot.value += bigBlind.value;
+                    
+                    addLog(`${players.value[smallBlindIndex].name} ставит малый блайнд (${smallBlind.value})`);
+                    addLog(`${players.value[bigBlindIndex].name} ставит большой блайнд (${bigBlind.value})`);
+                };
+                
+                // Начало раунда торгов
+                const startBettingRound = () => {
+                    // Сброс активного статуса
+                    players.value.forEach(p => p.isActive = false);
+                    
+                    // Определение первого активного игрока
+                    let startIndex = (gameState.value.dealerPosition + 3) % players.value.length;
+                    
+                    // Пропускаем сбросивших
+                    while (players.value[startIndex].hasFolded) {
+                        startIndex = (startIndex + 1) % players.value.length;
+                    }
+                    
+                    gameState.value.activePlayerIndex = startIndex;
+                    players.value[startIndex].isActive = true;
+                    
+                    // Если это бот, делаем ход автоматически
+                    if (!players.value[startIndex].isHuman) {
+                        setTimeout(() => botAction(startIndex), 1000);
+                    }
+                };
+                
+                // Действие игрока
+                const playerAction = (action) => {
+                    const player = players.value[gameState.value.activePlayerIndex];
+                    
+                    switch (action) {
+                        case 'check':
+                            if (canCheck.value) {
+                                addLog(`${player.name} чекает`);
+                                player.currentBet = Math.max(player.currentBet, 0);
+                                nextPlayer();
+                            }
+                            break;
+                            
+                        case 'call':
+                            if (canCall.value) {
+                                const callValue = callAmount.value;
+                                player.chips -= callValue;
+                                player.currentBet += callValue;
+                                pot.value += callValue;
+                                addLog(`${player.name} коллирует ${callValue}`);
+                                nextPlayer();
+                            }
+                            break;
+                            
+                        case 'raise':
+                            if (canRaise.value) {
+                                const raiseValue = currentBetAmount.value;
+                                player.chips -= raiseValue;
+                                player.currentBet += raiseValue;
+                                pot.value += raiseValue;
+                                addLog(`${player.name} поднимает на ${raiseValue}`);
+                                nextPlayer();
+                            }
+                            break;
+                            
+                        case 'fold':
+                            addLog(`${player.name} сбрасывает карты`);
+                            player.hasFolded = true;
+                            player.isActive = false;
+                            nextPlayer();
+                            break;
+                    }
+                };
+                
+                // Действие бота
+                const botAction = (botIndex) => {
+                    const bot = players.value[botIndex];
+                    if (bot.hasFolded || !gameState.value.started || gameState.value.roundOver) return;
+                    
+                    const actions = [];
+                    
+                    // Определяем возможные действия в зависимости от сложности
+                    if (canCheck.value) actions.push('check');
+                    if (canCall.value) actions.push('call');
+                    if (canRaise.value) actions.push('raise');
+                    actions.push('fold');
+                    
+                    // Логика бота в зависимости от сложности
+                    let chosenAction;
+                    const rand = Math.random();
+                    
+                    if (botDifficulty.value === 'Легкая') {
+                        // Простые боты часто фолдят
+                        if (rand < 0.4) chosenAction = 'fold';
+                        else if (rand < 0.7) chosenAction = 'check';
+                        else chosenAction = 'call';
+                    } else if (botDifficulty.value === 'Средняя') {
+                        // Средние боты играют балансированно
+                        if (rand < 0.2) chosenAction = 'fold';
+                        else if (rand < 0.5) chosenAction = 'check';
+                        else if (rand < 0.8) chosenAction = 'call';
+                        else chosenAction = 'raise';
+                    } else {
+                        // Сложные боты агрессивнее
+                        if (rand < 0.1) chosenAction = 'fold';
+                        else if (rand < 0.3) chosenAction = 'check';
+                        else if (rand < 0.6) chosenAction = 'call';
+                        else chosenAction = 'raise';
+                    }
+                    
+                    // Если выбранное действие невозможно, выбираем другое
+                    if (!actions.includes(chosenAction)) {
+                        chosenAction = actions[0];
+                    }
+                    
+                    // Выполняем действие
+                    switch (chosenAction) {
+                        case 'check':
+                            bot.currentBet = Math.max(bot.currentBet, 0);
+                            addLog(`${bot.name} чекает`);
+                            break;
+                            
+                        case 'call':
+                            const callValue = callAmount.value;
+                            bot.chips -= callValue;
+                            bot.currentBet += callValue;
+                            pot.value += callValue;
+                            addLog(`${bot.name} коллирует ${callValue}`);
+                            break;
+                            
+                        case 'raise':
+                            // Боты поднимают случайную сумму
+                            const minRaise = Math.max(bigBlind.value, callAmount.value);
+                            const raiseValue = minRaise + Math.floor(Math.random() * 50);
+                            currentBetAmount.value = raiseValue;
+                            bot.chips -= raiseValue;
+                            bot.currentBet += raiseValue;
+                            pot.value += raiseValue;
+                            addLog(`${bot.name} поднимает на ${raiseValue}`);
+                            break;
+                            
+                        case 'fold':
+                            bot.hasFolded = true;
+                            addLog(`${bot.name} сбрасывает карты`);
+                            break;
+                    }
+                    
+                    // Переход к следующему игроку
+                    setTimeout(() => {
+                        bot.isActive = false;
+                        nextPlayer();
+                    }, 1000);
+                };
+                
+                // Переход к следующему игроку
+                const nextPlayer = () => {
+                    const activePlayers = players.value.filter(p => !p.hasFolded);
+                    
+                    // Проверяем, завершился ли раунд торгов
+                    if (activePlayers.length <= 1 || bettingRoundComplete()) {
+                        endBettingRound();
+                        return;
+                    }
+                    
+                    // Находим следующего игрока
+                    let nextIndex = (gameState.value.activePlayerIndex + 1) % players.value.length;
+                    while (players.value[nextIndex].hasFolded) {
+                        nextIndex = (nextIndex + 1) % players.value.length;
+                    }
+                    
+                    // Обновляем активного игрока
+                    players.value.forEach((p, i) => p.isActive = i === nextIndex);
+                    gameState.value.activePlayerIndex = nextIndex;
+                    
+                    // Если следующий игрок - бот, делаем ход
+                    if (!players.value[nextIndex].isHuman) {
+                        setTimeout(() => botAction(nextIndex), 1000);
+                    }
+                };
+                
+                // Проверка завершения раунда торгов
+                const bettingRoundComplete = () => {
+                    const activePlayers = players.value.filter(p => !p.hasFolded);
+                    const maxBet = Math.max(...players.value.map(p => p.currentBet));
+                    
+                    // Все активные игроки поставили одинаково или поставили все-in
+                    return activePlayers.every(p => 
+                        p.currentBet === maxBet || p.chips === 0
+                    );
+                };
+                
+                // Завершение раунда торгов
+                const endBettingRound = () => {
+                    // Сброс текущих ставок (но не сброшенных фишек)
+                    players.value.forEach(p => p.currentBet = 0);
+                    
+                    // Переход к следующей фазе
+                    switch (gameState.value.currentPhase) {
+                        case 'preflop':
+                            gameState.value.currentPhase = 'flop';
+                            revealCommunityCards(3);
+                            addLog('Флоп открыт');
+                            break;
+                            
+                        case 'flop':
+                            gameState.value.currentPhase = 'turn';
+                            revealCommunityCards(4);
+                            addLog('Тёрн открыт');
+                            break;
+                            
+                        case 'turn':
+                            gameState.value.currentPhase = 'river';
+                            revealCommunityCards(5);
+                            addLog('Ривер открыт');
+                            break;
+                            
+                        case 'river':
+                            gameState.value.currentPhase = 'showdown';
+                            showdown();
+                            break;
+                    }
+                    
+                    // Если не шоудаун, начинаем новый раунд торгов
+                    if (gameState.value.currentPhase !== 'showdown') {
+                        startBettingRound();
+                    }
+                };
+                
+                // Открытие карт сообщества
+                const revealCommunityCards = (count) => {
+                    for (let i = 0; i < count; i++) {
+                        if (!communityCards.value[i].faceUp) {
+                            communityCards.value[i] = deck.value.pop();
+                            communityCards.value[i].faceUp = true;
+                        }
+                    }
+                };
+                
+                // Шоудаун - определение победителя
+                const showdown = () => {
+                    gameState.value.roundOver = true;
+                    gameState.value.showAllCards = true;
+                    
+                    // Показываем все карты
+                    players.value.forEach(player => {
+                        player.cards.forEach(card => card.faceUp = true);
+                    });
+                    
+                    // Определяем активных игроков
+                    const activePlayers = players.value.filter(p => !p.hasFolded);
+                    
+                    if (activePlayers.length === 1) {
+                        // Один игрок не сбросил - он победитель
+                        const winner = activePlayers[0];
+                        winner.chips += pot.value;
+                        announceWinner(winner, 'Все соперники сбросили карты');
+                    } else {
+                        // Определяем победителя по комбинациям
+                        evaluateHands();
+                    }
+                    
+                    addLog('Раунд завершен!');
+                };
+                
+                // Оценка рук для определения победителя
+                const evaluateHands = () => {
+                    // Упрощенная логика определения победителя
+                    // В реальной игре здесь была бы сложная логика оценки покерных рук
+                    
+                    // Для демо: случайный выбор победителя среди активных игроков
+                    const activePlayers = players.value.filter(p => !p.hasFolded);
+                    const winnerIndex = Math.floor(Math.random() * activePlayers.length);
+                    const winner = activePlayers[winnerIndex];
+                    
+                    // Случайная комбинация для демо
+                    const handRankIndex = Math.floor(Math.random() * handRanks.length);
+                    const handRank = handRanks[handRankIndex];
+                    
+                    winner.chips += pot.value;
+                    announceWinner(winner, handRank);
+                };
+                
+                // Объявление победителя
+                const announceWinner = (winner, handRank) => {
+                    winner.isWinner = true;
+                    winnerAnnouncement.value = {
+                        show: true,
+                        winnerName: winner.name,
+                        prize: pot.value,
+                        handRank: handRank
+                    };
+                    
+                    addLog(`${winner.name} выигрывает банк ${pot.value} с комбинацией: ${handRank}!`);
+                    pot.value = 0;
+                };
+                
+                // Следующий раунд
+                const nextRound = () => {
+                    winnerAnnouncement.value.show = false;
+                    players.value.forEach(p => p.isWinner = false);
+                    startGame();
+                };
+                
+                // Изменение суммы ставки
+                const changeBetAmount = (delta) => {
+                    const newAmount = currentBetAmount.value + delta;
+                    const minRaise = Math.max(bigBlind.value, callAmount.value);
+                    
+                    if (newAmount >= minRaise && newAmount <= getMaxBet.value) {
+                        currentBetAmount.value = newAmount;
+                    }
+                };
+                
+                // Добавление записи в лог
+                const addLog = (message) => {
+                    gameLog.value.push(message);
+                    // Ограничиваем лог 50 записями
+                    if (gameLog.value.length > 50) {
+                        gameLog.value.shift();
+                    }
+                };
+                
+                // Получение символа карты для отображения
+                const getCardSymbol = (card) => {
+                    return card.rank + card.suit;
+                };
+                
+                // Получение цвета карты
+                const getCardColor = (card) => {
+                    return (card.suit === '♥' || card.suit === '♦') ? 'card-red' : 'card-black';
+                };
+                
+                // Получение статуса игрока
+                const getPlayerStatus = (player) => {
+                    if (player.hasFolded) return 'Сбросил';
+                    if (player.isActive) return 'Ходит...';
+                    if (player.chips === 0) return 'All-in';
+                    if (player.currentBet > 0) return `Поставил ${player.currentBet}`;
+                    return 'Ожидание';
+                };
+                
+                // Получение текста фазы игры
+                const getPhaseText = () => {
+                    const phases = {
+                        'preflop': 'Префлоп - первые ставки',
+                        'flop': 'Флоп - открыты 3 карты',
+                        'turn': 'Тёрн - открыта 4-я карта',
+                        'river': 'Ривер - открыта 5-я карта',
+                        'showdown': 'Шоудаун - вскрытие карт'
+                    };
+                    return phases[gameState.value.currentPhase] || '';
+                };
+                
+                // Вычисляемые свойства
+                const canCheck = computed(() => {
+                    const player = players.value[gameState.value.activePlayerIndex];
+                    const maxBet = Math.max(...players.value.map(p => p.currentBet));
+                    return player.currentBet >= maxBet;
+                });
+                
+                const callAmount = computed(() => {
+                    const player = players.value[gameState.value.activePlayerIndex];
+                    const maxBet = Math.max(...players.value.map(p => p.currentBet));
+                    return Math.max(0, maxBet - player.currentBet);
+                });
+                
+                const canCall = computed(() => {
+                    const player = players.value[gameState.value.activePlayerIndex];
+                    return player.chips >= callAmount.value && callAmount.value > 0;
+                });
+                
+                const canRaise = computed(() => {
+                    const player = players.value[gameState.value.activePlayerIndex];
+                    return player.chips > callAmount.value;
+                });
+                
+                const getMaxBet = computed(() => {
+                    const player = players.value[gameState.value.activePlayerIndex];
+                    return player.chips;
+                });
+                
+                return {
+                    // Данные
+                    gameState,
+                    players,
+                    communityCards,
+                    pot,
+                    smallBlind,
+                    bigBlind,
+                    currentBetAmount,
+                    gameLog,
+                    botDifficulty,
+                    winnerAnnouncement,
+                    
+                    // Методы
+                    startGame,
+                    playerAction,
+                    changeBetAmount,
+                    nextRound,
+                    getCardSymbol,
+                    getCardColor,
+                    getPlayerStatus,
+                    getPhaseText,
+                    
+                    // Вычисляемые свойства
+                    canCheck,
+                    callAmount,
+                    canCall,
+                    canRaise,
+                    getMaxBet
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
