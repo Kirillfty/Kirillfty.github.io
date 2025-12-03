@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Золотой Талисман PRO - Игровой автомат</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c14 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 20px;
+        }
+
+        /* Основной слот */
+        .main-slot {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            border-radius: 20px;
+            padding: 25px;
+            border: 4px solid #d4af37;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.5);
+        }
+
+        .header h1 {
+            color: #d4af37;
+            font-size: 2.8rem;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #d4af37, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #a0a0c0;
+            font-size: 1.1rem;
+        }
+
+        .grid-container {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid #2a2a4a;
+        }
+
+        /* Видимая сетка 5x5 */
+        .visible-slot-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            height: 400px;
+        }
+
+        .slot-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            background: linear-gradient(145deg, #2a2a4a, #1e1e3a);
+            border-radius: 8px;
+            border: 2px solid #3a3a5a;
+            transition: all 0.3s;
+        }
+
+        .slot-cell.spinning {
+            animation: spinEffect 0.2s infinite;
+        }
+
+        .slot-cell.winning {
+            background: linear-gradient(145deg, #d4af37, #b8941f);
+            border: 2px solid #ffd700;
+            animation: winPulse 0.5s infinite;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .slot-cell.bonus {
+            background: linear-gradient(145deg, #ff6b6b, #ff4757);
+            border: 2px solid #ff3838;
+        }
+
+        @keyframes spinEffect {
+            0% { transform: translateY(-5px); opacity: 0.8; }
+            50% { transform: translateY(5px); opacity: 1; }
+            100% { transform: translateY(-5px); opacity: 0.8; }
+        }
+
+        @keyframes winPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(212, 175, 55, 0.8);
+            }
+        }
+
+        /* Вертикальный бонус-слот */
+        .bonus-slot-container {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            border-radius: 20px;
+            padding: 25px;
+            border: 4px solid #d4af37;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .bonus-slot-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .bonus-slot-header h2 {
+            color: #d4af37;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .bonus-slot-info {
+            color: #a0a0c0;
+            font-size: 1rem;
+        }
+
+        .bonus-wheel {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #3a3a5a;
+            margin-bottom: 20px;
+        }
+
+        .vertical-slot {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .vertical-reel {
+            width: 120px;
+            height: 360px;
+            background: linear-gradient(145deg, #1a1a2a, #0f0f1a);
+            border-radius: 10px;
+            border: 3px solid #d4af37;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .vertical-strip {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.1s linear;
+        }
+
+        .vertical-cell {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            background: linear-gradient(145deg, #2a2a4a, #1e1e3a);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .vertical-cell.bonus-active {
+            background: linear-gradient(145deg, #d4af37, #b8941f);
+            animation: verticalWin 0.5s infinite;
+        }
+
+        .vertical-mask {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0.9) 0%,
+                transparent 20%,
+                transparent 80%,
+                rgba(0, 0, 0, 0.9) 100%
+            );
+            z-index: 2;
+            border-radius: 10px;
+        }
+
+        .vertical-highlight {
+            position: absolute;
+            top: 33.33%;
+            left: 0;
+            right: 0;
+            height: 33.33%;
+            background: rgba(212, 175, 55, 0.2);
+            z-index: 1;
+            border-radius: 8px;
+            pointer-events: none;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+        }
+
+        .bonus-result {
+            background: rgba(0, 100, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #00ff00;
+            margin-top: 20px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bonus-result.active {
+            animation: bonusGlow 1s infinite alternate;
+        }
+
+        @keyframes bonusGlow {
+            from {
+                box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+                border-color: #00ff00;
+            }
+            to {
+                box-shadow: 0 0 40px rgba(0, 255, 0, 0.7);
+                border-color: #90ff90;
+            }
+        }
+
+        .bonus-text {
+            font-size: 1.3rem;
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .bonus-value {
+            font-size: 2rem;
+            color: #00ff00;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+
+        @keyframes verticalWin {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            }
+            50% { 
+                transform: scale(1.1);
+                box-shadow: 0 0 25px rgba(212, 175, 55, 0.8);
+            }
+        }
+
+        /* Панель управления */
+        .control-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 2px solid #3a3a5a;
+        }
+
+        .balance-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 12px;
+            border: 2px solid #d4af37;
+        }
+
+        .balance-label {
+            font-size: 1.2rem;
+            color: #a0a0c0;
+        }
+
+        .balance-amount {
+            font-size: 2.2rem;
+            color: #d4af37;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .bet-controls {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .current-bet {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #3a3a5a;
+        }
+
+        .bet-label {
+            color: #a0a0c0;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .bet-amount {
+            font-size: 2.5rem;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .bet-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .bet-btn {
+            padding: 15px 5px;
+            background: linear-gradient(45deg, #2a2a4a, #3a3a6a);
+            border: 2px solid #4a4a7a;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bet-btn:hover {
+            transform: translateY(-3px);
+            border-color: #d4af37;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .bet-btn.active {
+            background: linear-gradient(45deg, #d4af37, #b8941f);
+            border-color: #ffd700;
+            color: #000;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+        }
+
+        .spin-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .spin-btn {
+            padding: 20px;
+            background: linear-gradient(45deg, #d4af37, #b8941f);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 1.6rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spin-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 70%
+            );
+            transform: rotate(45deg);
+            animation: btnShine 3s infinite linear;
+        }
+
+        @keyframes btnShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.8);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .spin-btn:disabled::before {
+            animation: none;
+        }
+
+        .auto-spin-btn {
+            padding: 20px;
+            background: linear-gradient(45deg, #3a3a6a, #2a2a5a);
+            border: 2px solid #4a4a8a;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auto-spin-btn:hover {
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .auto-spin-btn.active {
+            background: linear-gradient(45deg, #d4af37, #b8941f);
+            border-color: #ffd700;
+            color: #000;
+        }
+
+        /* Информация о выигрыше */
+        .win-info {
+            background: rgba(0, 100, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+            border: 2px solid #00ff00;
+            display: none;
+            animation: winGlow 1s infinite alternate;
+        }
+
+        @keyframes winGlow {
+            from {
+                box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+                border-color: #00ff00;
+            }
+            to {
+                box-shadow: 0 0 40px rgba(0, 255, 0, 0.7);
+                border-color: #90ff90;
+            }
+        }
+
+        .win-info.active {
+            display: block;
+            animation: slideUp 0.5s ease, winGlow 1s infinite alternate;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .win-label {
+            color: #90ff90;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .win-amount {
+            font-size: 2.8rem;
+            color: #00ff00;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+            animation: amountPop 0.5s ease-out;
+        }
+
+        @keyframes amountPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Сообщения */
+        .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .message {
+            padding: 15px 25px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #d4af37, #b8941f);
+            color: #000;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Эффекты */
+        .confetti {
+            position: fixed;
+            width: 15px;
+            height: 15px;
+            background: #d4af37;
+            top: -20px;
+            animation: confettiFall 3s linear forwards;
+            z-index: 100;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1200px) {
+            .game-container {
+                grid-template-columns: 1fr;
+                max-width: 800px;
+            }
+            
+            .slot-cell {
+                font-size: 28px;
+            }
+            
+            .vertical-cell {
+                font-size: 36px;
+                height: 90px;
+            }
+            
+            .vertical-reel {
+                height: 270px;
+                width: 90px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slot-cell {
+                font-size: 20px;
+            }
+            
+            .bet-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .spin-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .vertical-cell {
+                font-size: 24px;
+                height: 60px;
+            }
+            
+            .vertical-reel {
+                height: 180px;
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="game-container">
+            <!-- Основной игровой слот 5x5 -->
+            <div class="main-slot">
+                <div class="header">
+                    <h1>ЗОЛОТОЙ ТАЛИСМАН PRO</h1>
+                    <p>5x5 слот • 5 линий • Вертикальный бонус-слот</p>
+                </div>
+
+                <div class="grid-container">
+                    <div class="visible-slot-grid">
+                        <div 
+                            v-for="(cell, index) in visibleCells" 
+                            :key="index"
+                            class="slot-cell"
+                            :class="{
+                                'spinning': isSpinning && Math.random() > 0.5,
+                                'winning': cell.winning,
+                                'bonus': cell.symbol === '🎰'
+                            }"
+                        >
+                            {{ cell.symbol }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вертикальный бонус-слот -->
+            <div class="bonus-slot-container">
+                <div class="bonus-slot-header">
+                    <h2>БОНУС-СЛОТ</h2>
+                    <div class="bonus-slot-info">
+                        При выпадении 🎰 активируется бонус-слот
+                    </div>
+                </div>
+
+                <div class="bonus-wheel">
+                    <div class="vertical-slot">
+                        <div class="vertical-reel">
+                            <div 
+                                class="vertical-strip" 
+                                :style="{ transform: `translateY(${verticalOffset}px)` }"
+                            >
+                                <div 
+                                    v-for="(cell, index) in verticalCells" 
+                                    :key="index"
+                                    class="vertical-cell"
+                                    :class="{ 'bonus-active': cell.active }"
+                                >
+                                    {{ cell.symbol }}
+                                </div>
+                            </div>
+                            <div class="vertical-mask"></div>
+                            <div class="vertical-highlight"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bonus-result" :class="{ active: bonusWin > 0 }">
+                    <div v-if="bonusWin > 0" class="bonus-text">БОНУС ВЫИГРЫШ</div>
+                    <div v-if="bonusWin > 0" class="bonus-value">+{{ bonusWin }} ₽</div>
+                    <div v-else class="bonus-text">Ожидание бонуса...</div>
+                </div>
+
+                <!-- Панель управления -->
+                <div class="control-panel">
+                    <div class="balance-info">
+                        <div class="balance-label">БАЛАНС</div>
+                        <div class="balance-amount">{{ balance }} ₽</div>
+                    </div>
+
+                    <div class="bet-controls">
+                        <div class="current-bet">
+                            <div class="bet-label">СТАВКА</div>
+                            <div class="bet-amount">{{ bet }} ₽</div>
+                        </div>
+                        
+                        <div class="bet-buttons">
+                            <button 
+                                v-for="amount in [50, 100, 200, 500, 1000, 2000]" 
+                                :key="amount"
+                                class="bet-btn"
+                                :class="{ active: bet === amount }"
+                                @click="setBet(amount)"
+                            >
+                                {{ amount }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="spin-section">
+                        <button 
+                            class="spin-btn"
+                            @click="spin"
+                            :disabled="isSpinning || balance < bet"
+                        >
+                            {{ spinButtonText }}
+                        </button>
+                        
+                        <button 
+                            class="auto-spin-btn"
+                            :class="{ active: autoSpin }"
+                            @click="toggleAutoSpin"
+                        >
+                            {{ autoSpin ? 'АВТО ИГРА' : 'АВТО' }}
+                        </button>
+                    </div>
+
+                    <div class="win-info" :class="{ active: lastWin > 0 }">
+                        <div class="win-label">ВЫ ВЫИГРАЛИ!</div>
+                        <div class="win-amount">{{ lastWin }} ₽</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сообщения -->
+        <div class="message-container">
+            <div v-for="(message, index) in messages" :key="index" class="message">
+                {{ message }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                balance: 10000,
+                bet: 100,
+                visibleCells: [],
+                verticalCells: [],
+                verticalOffset: -120,
+                symbols: [
+                    { symbol: '🍒', name: 'Вишня', payout: [0, 2, 5, 10, 25] },
+                    { symbol: '🍋', name: 'Лимон', payout: [0, 2, 4, 8, 20] },
+                    { symbol: '⭐', name: 'Звезда', payout: [0, 3, 7, 15, 40] },
+                    { symbol: '7️⃣', name: 'Семерка', payout: [0, 5, 12, 30, 100] },
+                    { symbol: '🪙', name: 'Монета', payout: [0, 2, 6, 12, 30] },
+                    { symbol: '🔔', name: 'Колокол', payout: [0, 2, 5, 10, 25] },
+                    { symbol: '💎', name: 'Алмаз', payout: [0, 4, 10, 25, 60] },
+                    { symbol: '👑', name: 'Корона', payout: [0, 3, 8, 20, 50] },
+                    { symbol: '🎯', name: 'Мишень', payout: [0, 2, 5, 12, 30] },
+                    { symbol: '🎰', name: 'Слот', type: 'bonus', payout: [0, 0, 0, 0, 0] }
+                ],
+                bonusSymbols: [
+                    { symbol: '💰', name: 'Деньги', value: 5, type: 'multiplier' },
+                    { symbol: '🎁', name: 'Подарок', value: 10, type: 'multiplier' },
+                    { symbol: '🔥', name: 'Огонь', value: 3, type: 'multiplier' },
+                    { symbol: '✨', name: 'Звезда', value: 7, type: 'multiplier' },
+                    { symbol: '💎', name: 'Алмаз', value: 15, type: 'multiplier' },
+                    { symbol: '🏆', name: 'Кубок', value: 20, type: 'multiplier' }
+                ],
+                payLines: [
+                    [1, 1, 1, 1, 1], // Центральная линия
+                    [0, 0, 0, 0, 0], // Верхняя линия
+                    [2, 2, 2, 2, 2], // Нижняя линия
+                    [0, 1, 2, 1, 0], // V-образная
+                    [2, 1, 0, 1, 2]  // Обратная V
+                ],
+                activeLines: [false, false, false, false, false],
+                isSpinning: false,
+                isVerticalSpinning: false,
+                lastWin: 0,
+                bonusWin: 0,
+                autoSpin: false,
+                messages: [],
+                freeSpins: 0,
+                multiplier: 1,
+                spinAnimationId: null,
+                verticalAnimationId: null
+            },
+            computed: {
+                spinButtonText() {
+                    if (this.isSpinning) return 'КРУТИТСЯ...';
+                    if (this.freeSpins > 0) return `БЕСПЛАТНО (${this.freeSpins})`;
+                    return 'КРУТИТЬ';
+                }
+            },
+            created() {
+                this.generateVisibleGrid();
+                this.generateVerticalSlot();
+            },
+            methods: {
+                generateVisibleGrid() {
+                    this.visibleCells = [];
+                    for (let i = 0; i < 25; i++) {
+                        const symbolData = this.getRandomSymbol();
+                        this.visibleCells.push({
+                            symbol: symbolData.symbol,
+                            name: symbolData.name,
+                            type: symbolData.type || 'regular',
+                            winning: false
+                        });
+                    }
+                },
+                
+                generateVerticalSlot() {
+                    this.verticalCells = [];
+                    // Генерируем 12 ячеек для вертикального слота
+                    for (let i = 0; i < 12; i++) {
+                        const bonusSymbol = this.bonusSymbols[Math.floor(Math.random() * this.bonusSymbols.length)];
+                        this.verticalCells.push({
+                            symbol: bonusSymbol.symbol,
+                            name: bonusSymbol.name,
+                            value: bonusSymbol.value,
+                            type: bonusSymbol.type,
+                            active: false
+                        });
+                    }
+                    // Устанавливаем позицию так, чтобы видимые ячейки были 3, 4, 5
+                    this.verticalOffset = -120;
+                },
+                
+                getRandomSymbol() {
+                    const weights = [15, 15, 10, 5, 15, 15, 8, 10, 6, 1];
+                    let total = weights.reduce((a, b) => a + b, 0);
+                    let rand = Math.random() * total;
+                    
+                    for (let i = 0; i < weights.length; i++) {
+                        rand -= weights[i];
+                        if (rand <= 0) {
+                            return { 
+                                symbol: this.symbols[i].symbol,
+                                name: this.symbols[i].name,
+                                type: this.symbols[i].type || 'regular'
+                            };
+                        }
+                    }
+                    return this.symbols[0];
+                },
+                
+                setBet(amount) {
+                    if (amount > this.balance) {
+                        this.showMessage('Недостаточно средств!');
+                        return;
+                    }
+                    this.bet = amount;
+                },
+                
+                async spin() {
+                    if (this.isSpinning) return;
+                    
+                    if (this.freeSpins === 0) {
+                        if (this.balance < this.bet) {
+                            this.showMessage('Недостаточно средств!');
+                            return;
+                        }
+                        this.balance -= this.bet;
+                    } else {
+                        this.freeSpins--;
+                    }
+                    
+                    this.isSpinning = true;
+                    this.lastWin = 0;
+                    this.bonusWin = 0;
+                    
+                    // Сбрасываем подсветку выигрышных ячеек
+                    this.visibleCells.forEach(cell => cell.winning = false);
+                    
+                    // Анимация вращения основного слота
+                    await this.animateMainSlot();
+                    
+                    // Генерируем новые символы
+                    this.generateVisibleGrid();
+                    
+                    // Расчет выигрыша
+                    const winResult = this.calculateWin();
+                    
+                    // Применяем множитель
+                    const totalWin = winResult.total * this.multiplier;
+                    
+                    if (totalWin > 0) {
+                        this.lastWin = totalWin;
+                        this.balance += totalWin;
+                        this.activeLines = winResult.lines;
+                        
+                        // Подсвечиваем выигрышные ячейки
+                        winResult.winningCells.forEach(({ row, col }) => {
+                            const index = row * 5 + col;
+                            if (index < this.visibleCells.length) {
+                                this.visibleCells[index].winning = true;
+                            }
+                        });
+                        
+                        // Эффект конфетти при выигрыше
+                        if (totalWin > this.bet * 10) {
+                            this.createConfetti();
+                        }
+                        
+                        if (this.multiplier > 1) {
+                            this.showMessage(`Выигрыш x${this.multiplier}! +${totalWin} ₽`);
+                        } else {
+                            this.showMessage(`Поздравляем! Выигрыш +${totalWin} ₽`);
+                        }
+                    }
+                    
+                    // Проверка на бонусный символ
+                    const hasBonusSymbol = this.checkForBonusSymbol();
+                    
+                    // Запускаем вертикальный слот если есть бонус
+                    if (hasBonusSymbol) {
+                        setTimeout(() => this.spinVerticalSlot(), 1500);
+                    }
+                    
+                    this.isSpinning = false;
+                    
+                    // Сброс множителя после использования
+                    if (this.multiplier > 1 && totalWin > 0) {
+                        setTimeout(() => {
+                            this.multiplier = 1;
+                            this.showMessage('Множитель сброшен');
+                        }, 3000);
+                    }
+                    
+                    // Автоспин
+                    if (this.autoSpin && this.balance >= this.bet) {
+                        setTimeout(() => this.spin(), 1500);
+                    }
+                },
+                
+                async animateMainSlot() {
+                    return new Promise((resolve) => {
+                        const spinDuration = 1000;
+                        const startTime = Date.now();
+                        
+                        const animate = () => {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(elapsed / spinDuration, 1);
+                            
+                            if (progress < 1) {
+                                this.spinAnimationId = requestAnimationFrame(animate);
+                            } else {
+                                cancelAnimationFrame(this.spinAnimationId);
+                                resolve();
+                            }
+                        };
+                        
+                        this.spinAnimationId = requestAnimationFrame(animate);
+                    });
+                },
+                
+                checkForBonusSymbol() {
+                    return this.visibleCells.some(cell => cell.symbol === '🎰');
+                },
+                
+                calculateWin() {
+                    let totalWin = 0;
+                    const winningLines = [false, false, false, false, false];
+                    const winningCells = [];
+                    
+                    // Создаем виртуальную сетку из видимых ячеек
+                    const grid = [];
+                    for (let row = 0; row < 5; row++) {
+                        grid[row] = [];
+                        for (let col = 0; col < 5; col++) {
+                            const index = row * 5 + col;
+                            grid[row][col] = this.visibleCells[index];
+                        }
+                    }
+                    
+                    this.payLines.forEach((line, lineIndex) => {
+                        const symbolsInLine = [];
+                        
+                        // Собираем символы по линии
+                        for (let col = 0; col < 5; col++) {
+                            const row = line[col];
+                            symbolsInLine.push(grid[row][col]);
+                        }
+                        
+                        // Проверяем комбинации
+                        const firstSymbol = symbolsInLine[0];
+                        let matchCount = 1;
+                        
+                        for (let i = 1; i < 5; i++) {
+                            if (symbolsInLine[i].symbol === firstSymbol.symbol) {
+                                matchCount++;
+                            } else {
+                                break;
+                            }
+                        }
+                        
+                        // Находим выплату для этого символа
+                        const symbolData = this.symbols.find(s => s.symbol === firstSymbol.symbol);
+                        if (symbolData && matchCount >= 2) {
+                            const winAmount = symbolData.payout[matchCount - 1] * this.bet;
+                            if (winAmount > 0) {
+                                totalWin += winAmount;
+                                winningLines[lineIndex] = true;
+                                
+                                // Добавляем выигрышные ячейки
+                                for (let i = 0; i < matchCount; i++) {
+                                    const col = i;
+                                    const row = line[col];
+                                    winningCells.push({ row, col });
+                                }
+                            }
+                        }
+                    });
+                    
+                    return { total: totalWin, lines: winningLines, winningCells };
+                },
+                
+                async spinVerticalSlot() {
+                    this.isVerticalSpinning = true;
+                    this.bonusWin = 0;
+                    
+                    // Генерируем новые символы для вертикального слота
+                    this.generateVerticalSlot();
+                    
+                    // Анимация вращения вертикального слота
+                    await this.animateVerticalSlot();
+                    
+                    // Определяем выигрыш по центральной ячейке
+                    const visibleIndex = Math.floor(Math.abs(this.verticalOffset + 120) / 120);
+                    const winCell = this.verticalCells[visibleIndex + 1]; // Центральная видимая ячейка
+                    
+                    if (winCell && winCell.type === 'multiplier') {
+                        this.bonusWin = this.bet * winCell.value;
+                        this.balance += this.bonusWin;
+                        
+                        // Подсвечиваем выигрышную ячейку
+                        this.verticalCells[visibleIndex + 1].active = true;
+                        
+                        this.showMessage(`БОНУС! ${winCell.name} x${winCell.value} = +${this.bonusWin} ₽`);
+                        this.createConfetti();
+                    }
+                    
+                    this.isVerticalSpinning = false;
+                },
+                
+                async animateVerticalSlot() {
+                    return new Promise((resolve) => {
+                        const spinDuration = 1500;
+                        const decelerationDuration = 1000;
+                        const totalDuration = spinDuration + decelerationDuration;
+                        const startTime = Date.now();
+                        
+                        // Случайная позиция остановки (4-9 индексы)
+                        const targetOffset = -(Math.floor(Math.random() * 6) + 4) * 120;
+                        
+                        const animate = () => {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(elapsed / totalDuration, 1);
+                            
+                            if (progress < spinDuration / totalDuration) {
+                                // Быстрое вращение
+                                this.verticalOffset -= 480; // Быстрая скорость
+                            } else {
+                                // Замедление
+                                const decelProgress = (progress - spinDuration / totalDuration) / 
+                                                    (decelerationDuration / totalDuration);
+                                const easeProgress = 1 - Math.pow(1 - decelProgress, 3);
+                                this.verticalOffset = -480 + (targetOffset + 480) * easeProgress;
+                            }
+                            
+                            // Зацикливание
+                            if (this.verticalOffset < -1200) {
+                                this.verticalOffset += 1200;
+                            }
+                            
+                            if (progress < 1) {
+                                this.verticalAnimationId = requestAnimationFrame(animate);
+                            } else {
+                                this.verticalOffset = targetOffset;
+                                cancelAnimationFrame(this.verticalAnimationId);
+                                resolve();
+                            }
+                        };
+                        
+                        this.verticalAnimationId = requestAnimationFrame(animate);
+                    });
+                },
+                
+                createConfetti() {
+                    const colors = ['#d4af37', '#ffd700', '#ff6b6b', '#4CAF50', '#2196F3'];
+                    for (let i = 0; i < 50; i++) {
+                        setTimeout(() => {
+                            const confetti = document.createElement('div');
+                            confetti.className = 'confetti';
+                            confetti.style.left = Math.random() * 100 + 'vw';
+                            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                            confetti.style.width = Math.random() * 10 + 10 + 'px';
+                            confetti.style.height = Math.random() * 10 + 10 + 'px';
+                            confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+                            document.body.appendChild(confetti);
+                            
+                            setTimeout(() => {
+                                document.body.removeChild(confetti);
+                            }, 3000);
+                        }, i * 30);
+                    }
+                },
+                
+                toggleAutoSpin() {
+                    this.autoSpin = !this.autoSpin;
+                    if (this.autoSpin && !this.isSpinning) {
+                        this.spin();
+                    }
+                },
+                
+                showMessage(text) {
+                    this.messages.push(text);
+                    setTimeout(() => {
+                        this.messages.shift();
+                    }, 3000);
+                }
+            },
+            beforeDestroy() {
+                if (this.spinAnimationId) {
+                    cancelAnimationFrame(this.spinAnimationId);
+                }
+                if (this.verticalAnimationId) {
+                    cancelAnimationFrame(this.verticalAnimationId);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
