@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dota 2: Battle for the Aegis - Игровой слот</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e17 0%, #1a1f2e 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to right, #2a5298, #1e3c72);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #4a6fa5;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover;
+            opacity: 0.2;
+            z-index: 0;
+        }
+        
+        .header > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #f9a602;
+            text-shadow: 0 0 10px rgba(249, 166, 2, 0.7);
+            letter-spacing: 1px;
+        }
+        
+        .balance-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        
+        .balance {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4dff4d;
+            text-shadow: 0 0 5px rgba(77, 255, 77, 0.5);
+        }
+        
+        .balance-label {
+            color: #d1e0ff;
+            font-size: 1rem;
+        }
+        
+        /* Game Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 35, 52, 0.8);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a4565;
+        }
+        
+        .bet-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .bet-label {
+            color: #d1e0ff;
+            font-size: 1.2rem;
+        }
+        
+        .bet-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #f9a602;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .bet-btn {
+            background: #4a6fa5;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .bet-btn:hover {
+            background: #5a7fb5;
+            transform: scale(1.1);
+        }
+        
+        .bet-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .spin-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .spin-btn {
+            background: linear-gradient(to bottom, #f9a602, #d18a00);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 40px;
+            color: #0a0e17;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(249, 166, 2, 0.3);
+        }
+        
+        .spin-btn:hover:not(:disabled) {
+            background: linear-gradient(to bottom, #ffb618, #e19a00);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(249, 166, 2, 0.4);
+        }
+        
+        .spin-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .free-spins-counter {
+            background: rgba(0, 204, 255, 0.2);
+            border: 2px solid #00ccff;
+            border-radius: 20px;
+            padding: 8px 20px;
+            color: #00ccff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: pulseBlue 2s infinite;
+        }
+        
+        @keyframes pulseBlue {
+            0% { box-shadow: 0 0 5px rgba(0, 204, 255, 0.5); }
+            50% { box-shadow: 0 0 15px rgba(0, 204, 255, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(0, 204, 255, 0.5); }
+        }
+        
+        .total-bet {
+            color: #d1e0ff;
+            font-size: 1.2rem;
+        }
+        
+        .total-bet span {
+            color: #f9a602;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        /* Slot Machine */
+        .slot-machine {
+            background: rgba(20, 25, 40, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 2px solid #4a6fa5;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slot-machine::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .slot-machine > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .slot-title {
+            text-align: center;
+            color: #f9a602;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px rgba(249, 166, 2, 0.5);
+        }
+        
+        .slot-grid {
+            display: inline-grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #4a6fa5;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+        
+        .reel {
+            width: 120px;
+            height: 360px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #3a4565;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
+        }
+        
+        .reel-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: transform 0.1s linear;
+        }
+        
+        .reel.spinning .reel-container {
+            transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+        }
+        
+        .reel-cell {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .reel-cell:last-child {
+            border-bottom: none;
+        }
+        
+        .symbol {
+            font-size: 3.5rem;
+            filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+            transition: all 0.3s;
+        }
+        
+        .symbol.wild {
+            animation: pulse 2s infinite;
+            color: #ff9900;
+        }
+        
+        .symbol.scatter {
+            animation: glow 3s infinite;
+            color: #00ccff;
+        }
+        
+        .symbol.ancient {
+            animation: pulseAncient 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes glow {
+            0% { filter: drop-shadow(0 0 3px rgba(0, 204, 255, 0.5)); }
+            50% { filter: drop-shadow(0 0 10px rgba(0, 204, 255, 0.8)); }
+            100% { filter: drop-shadow(0 0 3px rgba(0, 204, 255, 0.5)); }
+        }
+        
+        @keyframes pulseAncient {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05) rotate(5deg); }
+            50% { transform: scale(1.1) rotate(0deg); }
+            75% { transform: scale(1.05) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        
+        .win-line {
+            position: absolute;
+            background: rgba(249, 166, 2, 0.2);
+            border: 2px solid #f9a602;
+            border-radius: 5px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .win-line.show {
+            opacity: 1;
+            animation: winLineGlow 1s infinite alternate;
+        }
+        
+        @keyframes winLineGlow {
+            0% { border-color: #f9a602; box-shadow: 0 0 5px rgba(249, 166, 2, 0.5); }
+            100% { border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.8); }
+        }
+        
+        /* Info Panel */
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-card {
+            background: rgba(30, 35, 52, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a4565;
+        }
+        
+        .info-title {
+            color: #f9a602;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-content {
+            color: #d1e0ff;
+            line-height: 1.5;
+        }
+        
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal {
+            background: linear-gradient(135deg, #1a1f2e 0%, #2a3152 100%);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border: 3px solid #f9a602;
+            position: relative;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.4s;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .modal-title {
+            color: #f9a602;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(249, 166, 2, 0.5);
+        }
+        
+        .modal-content {
+            color: #d1e0ff;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .win-amount {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #4dff4d;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(77, 255, 77, 0.5);
+            animation: pulse 1s infinite;
+        }
+        
+        .modal-btn {
+            background: linear-gradient(to bottom, #f9a602, #d18a00);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            color: #0a0e17;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(249, 166, 2, 0.3);
+        }
+        
+        .modal-btn:hover {
+            background: linear-gradient(to bottom, #ffb618, #e19a00);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(249, 166, 2, 0.4);
+        }
+        
+        .free-spins-count {
+            font-size: 4rem;
+            color: #00ccff;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .ancient-symbols {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            font-size: 3rem;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 1px solid #3a4565;
+            color: #a0b0d0;
+            font-size: 0.9rem;
+        }
+        
+        /* Auto Spin Indicator */
+        .auto-spin-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 204, 255, 0.2);
+            border: 2px solid #00ccff;
+            border-radius: 15px;
+            padding: 10px 20px;
+            color: #00ccff;
+            font-weight: 700;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: pulseBlue 2s infinite;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .slot-grid {
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .reel {
+                width: 100px;
+                height: 300px;
+            }
+            
+            .reel-cell {
+                height: 100px;
+            }
+            
+            .symbol {
+                font-size: 3rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .balance-container {
+                align-items: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .slot-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 5px;
+                padding: 10px;
+            }
+            
+            .reel {
+                width: 70px;
+                height: 210px;
+            }
+            
+            .reel-cell {
+                height: 70px;
+            }
+            
+            .symbol {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <!-- Auto Spin Indicator -->
+        <div class="auto-spin-indicator" v-if="isAutoSpinning">
+            <i class="fas fa-sync-alt fa-spin"></i>
+            Авто-вращение: {{ autoSpinCount }} из {{ totalAutoSpins }}
+        </div>
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">DOTA 2: BATTLE FOR THE AEGIS</div>
+            <div class="balance-container">
+                <div class="balance-label">Баланс</div>
+                <div class="balance">{{ formatBalance }} <i class="fas fa-coins"></i></div>
+            </div>
+        </header>
+        
+        <!-- Game Controls -->
+        <div class="controls">
+            <div class="bet-controls">
+                <button class="bet-btn" @click="decreaseBet" :disabled="isSpinning || isAutoSpinning"><i class="fas fa-minus"></i></button>
+                <div>
+                    <div class="bet-label">Ставка</div>
+                    <div class="bet-amount">{{ formatBet }} <i class="fas fa-coins"></i></div>
+                </div>
+                <button class="bet-btn" @click="increaseBet" :disabled="isSpinning || isAutoSpinning"><i class="fas fa-plus"></i></button>
+            </div>
+            
+            <div class="total-bet">
+                Общая ставка: <span>{{ formatTotalBet }} <i class="fas fa-coins"></i></span>
+            </div>
+            
+            <div class="spin-controls">
+                <button class="spin-btn" @click="spin" :disabled="isSpinning || isAutoSpinning || balance < totalBet">
+                    <i class="fas fa-play"></i> {{ isSpinning ? 'КРУТИТСЯ...' : 'КРУТИТЬ' }}
+                </button>
+                <div class="free-spins-counter" v-if="freeSpins > 0">
+                    <i class="fas fa-crown"></i> {{ freeSpins }} бесплатных вращений
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slot Machine -->
+        <div class="slot-machine">
+            <h2 class="slot-title">СРАЖЕНИЕ ЗА ЭГИДУ БЕССМЕРТНОГО</h2>
+            
+            <div class="slot-grid">
+                <div class="reel" v-for="(reel, reelIndex) in reels" :key="reelIndex" :class="{ spinning: isSpinning }">
+                    <div class="reel-container" :style="{ transform: `translateY(-${reel.position}px)` }">
+                        <div class="reel-cell" v-for="(symbol, symbolIndex) in reel.symbols" :key="symbolIndex">
+                            <div class="symbol" :class="getSymbolClass(symbol)">{{ getSymbolEmoji(symbol) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Win Lines -->
+            <div class="win-line" v-for="(line, index) in activeWinLines" :key="index" 
+                 :class="{ show: showWinLines }"
+                 :style="{
+                    top: line.top + 'px',
+                    left: line.left + 'px',
+                    width: line.width + 'px',
+                    height: line.height + 'px'
+                 }"></div>
+        </div>
+        
+        <!-- Info Panel -->
+        <div class="info-panel">
+            <div class="info-card">
+                <h3 class="info-title"><i class="fas fa-gem"></i> Символы Dota 2</h3>
+                <div class="info-content">
+                    <p><strong>🟢 Крипы Редиант:</strong> 1-5x ставки</p>
+                    <p><strong>🔴 Крипы Дайр:</strong> 2-6x ставки</p>
+                    <p><strong>⚡ Блинк-дагер:</strong> 5-15x ставки</p>
+                    <p><strong>🔮 Сфера Вайса:</strong> 8-20x ставки</p>
+                    <p><strong>❤️ Сердце Таррасака:</strong> 10-25x ставки</p>
+                    <p><strong>🗡️ Рапира Божества:</strong> 15-50x ставки</p>
+                    <p><strong>🐉 Рошан (WILD):</strong> Заменяет символы, множитель x2-x5</p>
+                    <p><strong>🛡️ Эгида (SCATTER):</strong> 3+ = 8 бесплатных вращений</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <h3 class="info-title"><i class="fas fa-fire"></i> Бонусная игра</h3>
+                <div class="info-content">
+                    <p><strong>🏛️ Древний Редиант (бонусный WILD):</strong> x2, x3, x5 множитель</p>
+                    <p><strong>💀 Древний Дайр (бонусный WILD):</strong> x2, x3, x5 множитель</p>
+                    <p><strong>Сокровищница Древних:</strong> 8 бесплатных вращений с Wild-символами Древних</p>
+                    <p><strong>Перезапуск:</strong> 3+ Эгиды во время бонуса = дополнительные 3 вращения</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <h3 class="info-title"><i class="fas fa-trophy"></i> Статистика</h3>
+                <div class="info-content">
+                    <p><strong>Выигрыш за игру:</strong> {{ formatWinAmount }} <i class="fas fa-coins"></i></p>
+                    <p><strong>Бесплатные вращения:</strong> {{ freeSpins }} осталось</p>
+                    <p><strong>Всего выиграно:</strong> {{ formatTotalWon }} <i class="fas fa-coins"></i></p>
+                    <p><strong>Коэффициент отдачи:</strong> 96.5%</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Win Modal -->
+        <div class="modal-overlay" :class="{ active: showWinModal }">
+            <div class="modal">
+                <h2 class="modal-title"><i class="fas fa-trophy"></i> ПОБЕДА!</h2>
+                <div class="modal-content">
+                    <p>Вы выиграли!</p>
+                    <div class="win-amount">{{ formatCurrentWin }} <i class="fas fa-coins"></i></div>
+                    <p v-if="scatterCount >= 3">БОНУСНАЯ ИГРА АКТИВИРОВАНА!</p>
+                    <p v-if="scatterCount >= 3">Вы получаете 8 бесплатных вращений!</p>
+                    <div v-if="scatterCount >= 3" class="ancient-symbols">
+                        <div class="symbol ancient">🏛️</div>
+                        <div class="symbol ancient">💀</div>
+                    </div>
+                </div>
+                <button class="modal-btn" @click="closeWinModal">
+                    {{ scatterCount >= 3 ? 'НАЧАТЬ БОНУСНУЮ ИГРУ' : 'ПРОДОЛЖИТЬ' }}
+                </button>
+            </div>
+        </div>
+        
+        <!-- Free Spins Modal -->
+        <div class="modal-overlay" :class="{ active: showFreeSpinsModal }">
+            <div class="modal">
+                <h2 class="modal-title"><i class="fas fa-crown"></i> БОНУСНАЯ ИГРА</h2>
+                <div class="modal-content">
+                    <p>СОКРОВИЩНИЦА ДРЕВНИХ</p>
+                    <div class="free-spins-count">{{ freeSpins }}</div>
+                    <p>бесплатных вращений</p>
+                    <p>Во время бонусной игры появляются Wild-символы Древних с множителями!</p>
+                    <div class="ancient-symbols">
+                        <div class="symbol ancient">🏛️</div>
+                        <div class="symbol ancient">💀</div>
+                    </div>
+                    <p>Автоматическое вращение через: {{ autoSpinDelay }} сек.</p>
+                </div>
+                <button class="modal-btn" @click="startFreeSpins">НАЧАТЬ СЕЙЧАС</button>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Игровой слот "Dota 2: Battle for the Aegis" | Для демонстрационных целей</p>
+            <p>Dota 2 является зарегистрированной торговой маркой Valve Corporation</p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // Game state
+                const balance = ref(10000);
+                const bet = ref(100);
+                const isSpinning = ref(false);
+                const isAutoSpinning = ref(false);
+                const autoSpinCount = ref(0);
+                const totalAutoSpins = ref(0);
+                const currentWin = ref(0);
+                const totalWon = ref(0);
+                const freeSpins = ref(0);
+                const scatterCount = ref(0);
+                const showWinModal = ref(false);
+                const showFreeSpinsModal = ref(false);
+                const showWinLines = ref(false);
+                const activeWinLines = ref([]);
+                const autoSpinDelay = ref(5);
+                
+                // Symbols with Dota 2 emojis
+                const symbols = [
+                    { id: 'creep_radiant', name: 'Крип Редиант', type: 'standard', value: 2, emoji: '🟢' },
+                    { id: 'creep_dire', name: 'Крип Дайр', type: 'standard', value: 2, emoji: '🔴' },
+                    { id: 'blink', name: 'Блинк-дагер', type: 'standard', value: 5, emoji: '⚡' },
+                    { id: 'scythe', name: 'Сфера Вайса', type: 'standard', value: 8, emoji: '🔮' },
+                    { id: 'heart', name: 'Сердце Таррасака', type: 'standard', value: 10, emoji: '❤️' },
+                    { id: 'rapier', name: 'Рапира Божества', type: 'standard', value: 15, emoji: '🗡️' },
+                    { id: 'roshan', name: 'Рошан', type: 'wild', value: 0, emoji: '🐉' },
+                    { id: 'aegis', name: 'Эгида', type: 'scatter', value: 3, emoji: '🛡️' },
+                    { id: 'ancient_radiant', name: 'Древний Редиант', type: 'wild', value: 0, emoji: '🏛️' },
+                    { id: 'ancient_dire', name: 'Древний Дайр', type: 'wild', value: 0, emoji: '💀' }
+                ];
+                
+                // Reels state
+                const reels = ref([
+                    { position: 0, symbols: [] },
+                    { position: 0, symbols: [] },
+                    { position: 0, symbols: [] },
+                    { position: 0, symbols: [] },
+                    { position: 0, symbols: [] }
+                ]);
+                
+                // Win lines configuration
+                const winLinesConfig = [
+                    { positions: [[0,1], [1,1], [2,1], [3,1], [4,1]], top: 130, left: 15, width: 610, height: 120 },
+                    { positions: [[0,0], [1,0], [2,0], [3,0], [4,0]], top: 10, left: 15, width: 610, height: 120 },
+                    { positions: [[0,2], [1,2], [2,2], [3,2], [4,2]], top: 250, left: 15, width: 610, height: 120 },
+                    { positions: [[0,0], [1,1], [2,2], [3,1], [4,0]], top: 10, left: 15, width: 610, height: 360 },
+                    { positions: [[0,2], [1,1], [2,0], [3,1], [4,2]], top: 10, left: 15, width: 610, height: 360 }
+                ];
+                
+                // Initialize reels
+                const initializeReels = () => {
+                    for (let i = 0; i < 5; i++) {
+                        const reelSymbols = [];
+                        for (let j = 0; j < 10; j++) {
+                            const randomSymbol = symbols[Math.floor(Math.random() * 8)];
+                            reelSymbols.push(randomSymbol.id);
+                        }
+                        reels.value[i].symbols = reelSymbols;
+                    }
+                };
+                
+                // Get symbol emoji
+                const getSymbolEmoji = (symbolId) => {
+                    const symbol = symbols.find(s => s.id === symbolId);
+                    return symbol ? symbol.emoji : '❓';
+                };
+                
+                // Get symbol class
+                const getSymbolClass = (symbolId) => {
+                    const symbol = symbols.find(s => s.id === symbolId);
+                    if (!symbol) return '';
+                    
+                    if (symbol.type === 'wild') return 'wild';
+                    if (symbol.type === 'scatter') return 'scatter';
+                    if (symbol.id === 'ancient_radiant' || symbol.id === 'ancient_dire') return 'ancient';
+                    return '';
+                };
+                
+                // Format numbers
+                const formatBalance = computed(() => {
+                    return balance.value.toLocaleString('ru-RU');
+                });
+                
+                const formatBet = computed(() => {
+                    return bet.value.toLocaleString('ru-RU');
+                });
+                
+                const totalBet = computed(() => {
+                    return bet.value * 20;
+                });
+                
+                const formatTotalBet = computed(() => {
+                    return totalBet.value.toLocaleString('ru-RU');
+                });
+                
+                const formatCurrentWin = computed(() => {
+                    return currentWin.value.toLocaleString('ru-RU');
+                });
+                
+                const formatWinAmount = computed(() => {
+                    return currentWin.value.toLocaleString('ru-RU');
+                });
+                
+                const formatTotalWon = computed(() => {
+                    return totalWon.value.toLocaleString('ru-RU');
+                });
+                
+                // Bet controls
+                const increaseBet = () => {
+                    if (bet.value < 500) {
+                        bet.value += 50;
+                    }
+                };
+                
+                const decreaseBet = () => {
+                    if (bet.value > 50) {
+                        bet.value -= 50;
+                    }
+                };
+                
+                // Generate random symbols for spin
+                const generateSpinSymbols = (isFreeSpin = false) => {
+                    const newReelSymbols = [];
+                    for (let i = 0; i < 5; i++) {
+                        const reelSymbols = [];
+                        for (let j = 0; j < 10; j++) {
+                            if (j < 3) {
+                                let availableSymbols = symbols.filter(s => 
+                                    s.type === 'standard' || 
+                                    (s.id === 'roshan' && i >= 1 && i <= 3) ||
+                                    s.id === 'aegis'
+                                );
+                                
+                                // In free spins, add ancient symbols with higher probability
+                                if (isFreeSpin && Math.random() < 0.4) {
+                                    availableSymbols = availableSymbols.concat(
+                                        symbols.filter(s => s.id === 'ancient_radiant' || s.id === 'ancient_dire')
+                                    );
+                                }
+                                
+                                const randomSymbol = availableSymbols[Math.floor(Math.random() * availableSymbols.length)];
+                                reelSymbols.push(randomSymbol.id);
+                            } else {
+                                const randomSymbol = symbols[Math.floor(Math.random() * 8)];
+                                reelSymbols.push(randomSymbol.id);
+                            }
+                        }
+                        newReelSymbols.push(reelSymbols);
+                    }
+                    return newReelSymbols;
+                };
+                
+                // Perform a single spin
+                const performSpin = (isFreeSpin = false) => {
+                    return new Promise((resolve) => {
+                        isSpinning.value = true;
+                        showWinLines.value = false;
+                        activeWinLines.value = [];
+                        currentWin.value = 0;
+                        scatterCount.value = 0;
+                        
+                        // Deduct bet if not free spin
+                        if (!isFreeSpin && freeSpins.value === 0) {
+                            balance.value -= totalBet.value;
+                        }
+                        
+                        // Generate new symbols
+                        const newReelSymbols = generateSpinSymbols(isFreeSpin);
+                        
+                        // Apply new symbols
+                        for (let i = 0; i < 5; i++) {
+                            reels.value[i].symbols = newReelSymbols[i];
+                        }
+                        
+                        // Start spinning animation
+                        const spinDuration = 1500;
+                        const startTime = Date.now();
+                        
+                        const animateSpin = () => {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(elapsed / spinDuration, 1);
+                            
+                            const easeOut = 1 - Math.pow(1 - progress, 3);
+                            
+                            for (let i = 0; i < 5; i++) {
+                                const maxPosition = 120 * 7;
+                                reels.value[i].position = easeOut * maxPosition;
+                            }
+                            
+                            if (progress < 1) {
+                                requestAnimationFrame(animateSpin);
+                            } else {
+                                isSpinning.value = false;
+                                
+                                // Check for wins
+                                checkWins();
+                                
+                                // Check for scatter symbols
+                                checkScatters(isFreeSpin);
+                                
+                                // Show win modal if there's a win or scatter
+                                if (currentWin.value > 0 || scatterCount.value >= 3) {
+                                    setTimeout(() => {
+                                        showWinModal.value = true;
+                                    }, 1000);
+                                }
+                                
+                                resolve();
+                            }
+                        };
+                        
+                        animateSpin();
+                    });
+                };
+                
+                // Main spin function
+                const spin = async () => {
+                    if (isSpinning.value || isAutoSpinning.value || balance.value < totalBet.value) return;
+                    
+                    if (freeSpins.value > 0) {
+                        freeSpins.value--;
+                    }
+                    
+                    await performSpin(freeSpins.value > 0);
+                };
+                
+                // Check for winning combinations
+                const checkWins = () => {
+                    const visibleSymbols = [];
+                    
+                    // Get visible symbols
+                    for (let row = 0; row < 3; row++) {
+                        const rowSymbols = [];
+                        for (let reel = 0; reel < 5; reel++) {
+                            rowSymbols.push(reels.value[reel].symbols[row]);
+                        }
+                        visibleSymbols.push(rowSymbols);
+                    }
+                    
+                    // Check each win line
+                    winLinesConfig.forEach((line, lineIndex) => {
+                        const lineSymbols = line.positions.map(pos => {
+                            const [reel, row] = pos;
+                            return reels.value[reel].symbols[row];
+                        });
+                        
+                        const firstSymbol = lineSymbols[0];
+                        let isWinningLine = true;
+                        let multiplier = 1;
+                        
+                        for (let i = 1; i < lineSymbols.length; i++) {
+                            const symbol = lineSymbols[i];
+                            const symbolData = symbols.find(s => s.id === symbol);
+                            const firstSymbolData = symbols.find(s => s.id === firstSymbol);
+                            
+                            // Check for wild symbols with multipliers
+                            if (symbol === 'roshan') {
+                                multiplier *= 2;
+                                continue;
+                            }
+                            
+                            if (symbol === 'ancient_radiant' || symbol === 'ancient_dire') {
+                                multiplier *= 3;
+                                continue;
+                            }
+                            
+                            if (symbol !== firstSymbol && firstSymbol !== 'roshan' && 
+                                firstSymbol !== 'ancient_radiant' && firstSymbol !== 'ancient_dire') {
+                                isWinningLine = false;
+                                break;
+                            }
+                        }
+                        
+                        if (isWinningLine && firstSymbol !== 'aegis') {
+                            const symbolData = symbols.find(s => s.id === firstSymbol);
+                            if (symbolData && symbolData.value > 0) {
+                                const winAmount = bet.value * symbolData.value * multiplier;
+                                currentWin.value += winAmount;
+                                totalWon.value += winAmount;
+                                balance.value += winAmount;
+                                
+                                // Add win line visualization
+                                activeWinLines.value.push(line);
+                            }
+                        }
+                    });
+                    
+                    // Show win lines
+                    if (activeWinLines.value.length > 0) {
+                        setTimeout(() => {
+                            showWinLines.value = true;
+                        }, 500);
+                    }
+                };
+                
+                // Check for scatter symbols
+                const checkScatters = (isFreeSpin = false) => {
+                    scatterCount.value = 0;
+                    
+                    // Count scatter symbols in visible area
+                    for (let row = 0; row < 3; row++) {
+                        for (let reel = 0; reel < 5; reel++) {
+                            if (reels.value[reel].symbols[row] === 'aegis') {
+                                scatterCount.value++;
+                            }
+                        }
+                    }
+                    
+                    // If we have 3+ scatters
+                    if (scatterCount.value >= 3) {
+                        const scatterWin = bet.value * scatterCount.value * 10;
+                        currentWin.value += scatterWin;
+                        totalWon.value += scatterWin;
+                        balance.value += scatterWin;
+                        
+                        // Award free spins
+                        if (!isFreeSpin && freeSpins.value === 0) {
+                            freeSpins.value = 8;
+                        } else if (isFreeSpin) {
+                            // Additional spins during free spins
+                            freeSpins.value += 3;
+                        }
+                    }
+                };
+                
+                // Close win modal
+                const closeWinModal = () => {
+                    showWinModal.value = false;
+                    
+                    // If we have free spins from scatters, start free spins
+                    if (freeSpins.value > 0 && !isAutoSpinning.value) {
+                        startFreeSpins();
+                    }
+                };
+                
+                // Start free spins
+                const startFreeSpins = () => {
+                    showFreeSpinsModal.value = true;
+                    
+                    // Start countdown
+                    const countdown = setInterval(() => {
+                        autoSpinDelay.value--;
+                        if (autoSpinDelay.value <= 0) {
+                            clearInterval(countdown);
+                            beginAutoSpins();
+                        }
+                    }, 1000);
+                };
+                
+                // Begin automatic free spins
+                const beginAutoSpins = async () => {
+                    showFreeSpinsModal.value = false;
+                    isAutoSpinning.value = true;
+                    totalAutoSpins.value = freeSpins.value;
+                    autoSpinCount.value = 0;
+                    
+                    // Perform all free spins automatically
+                    while (freeSpins.value > 0) {
+                        autoSpinCount.value = totalAutoSpins.value - freeSpins.value + 1;
+                        
+                        await performSpin(true);
+                        
+                        // Wait before next spin
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        // Close win modal if it's open
+                        if (showWinModal.value) {
+                            showWinModal.value = false;
+                        }
+                    }
+                    
+                    // End of free spins
+                    isAutoSpinning.value = false;
+                    autoSpinDelay.value = 5;
+                    
+                    // Show final win message
+                    if (currentWin.value > 0) {
+                        setTimeout(() => {
+                            showWinModal.value = true;
+                        }, 1000);
+                    }
+                };
+                
+                // Initialize game
+                onMounted(() => {
+                    initializeReels();
+                });
+                
+                return {
+                    // State
+                    balance,
+                    bet,
+                    isSpinning,
+                    isAutoSpinning,
+                    autoSpinCount,
+                    totalAutoSpins,
+                    currentWin,
+                    totalWon,
+                    freeSpins,
+                    scatterCount,
+                    showWinModal,
+                    showFreeSpinsModal,
+                    showWinLines,
+                    activeWinLines,
+                    autoSpinDelay,
+                    
+                    // Reels
+                    reels,
+                    
+                    // Computed
+                    formatBalance,
+                    formatBet,
+                    totalBet,
+                    formatTotalBet,
+                    formatCurrentWin,
+                    formatWinAmount,
+                    formatTotalWon,
+                    
+                    // Methods
+                    getSymbolEmoji,
+                    getSymbolClass,
+                    increaseBet,
+                    decreaseBet,
+                    spin,
+                    closeWinModal,
+                    startFreeSpins
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

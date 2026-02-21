@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Vue 3 Slot (BYN, выплаты уменьшены, ручные фриспины)</title>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.5.0/dist/vuetify.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.5.0/dist/vuetify.min.js"></script>
+    <style>
+        .symbol-cell {
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            height: 70px;
+            width: 70px;
+            border-radius: 8px;
+            background: #2c3e50;
+            color: white;
+            will-change: transform, opacity;
+        }
+
+        .spinning-column .symbol-cell {
+            animation: smooth-vertical-spin 0.15s infinite ease-in-out;
+        }
+
+        @keyframes smooth-vertical-spin {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            25% { transform: translateY(-12px) scale(0.9); opacity: 0.7; }
+            50% { transform: translateY(12px) scale(1.1); opacity: 0.8; }
+            75% { transform: translateY(-6px) scale(0.95); opacity: 0.9; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .winning-line {
+            background: gold !important;
+            color: black;
+        }
+        .wild-symbol {
+            box-shadow: 0 0 10px #ffaa00;
+        }
+        .scatter-symbol {
+            box-shadow: 0 0 10px #ff5500;
+        }
+
+        @media (max-width: 600px) {
+            .symbol-cell {
+                font-size: 1.5rem;
+                height: 50px;
+                width: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-container class="mt-4">
+                <!-- Баланс и ставка (BYN с копейками) -->
+                <v-row justify="center" class="mb-4">
+                    <v-col cols="12" sm="8" md="6" class="d-flex justify-space-between align-center">
+                        <v-card variant="outlined" class="pa-3">
+                            <div class="text-h6">Баланс: {{ balance.toFixed(2) }} BYN</div>
+                        </v-card>
+                        <v-card variant="outlined" class="pa-3 d-flex align-center">
+                            <v-btn icon @click="decreaseBet" :disabled="bet <= minBet || spinningActive || freeSpinsLeft > 0">
+                                <v-icon>mdi-minus</v-icon>
+                            </v-btn>
+                            <span class="mx-3 text-h6">{{ bet.toFixed(2) }} BYN</span>
+                            <v-btn icon @click="increaseBet" :disabled="bet >= maxBet || spinningActive || freeSpinsLeft > 0">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </v-card>
+                        <v-btn color="primary" large @click="spin" :disabled="!canSpin || spinningActive">
+                            {{ freeSpinsLeft > 0 ? `Бесплатно (${freeSpinsLeft})` : 'Spin' }}
+                        </v-btn>
+                    </v-col>
+                </v-row>
+
+                <!-- Игровое поле 5x5 -->
+                <v-row justify="center">
+                    <v-col cols="12" sm="10" md="8" lg="6">
+                        <v-row no-gutters justify="center">
+                            <v-col v-for="(col, colIndex) in displayedGrid" :key="colIndex" cols="auto" 
+                                   :class="{ 'spinning-column': spinning[colIndex] }" class="d-flex flex-column align-center">
+                                <div v-for="(cell, rowIndex) in col" :key="rowIndex" class="ma-1">
+                                    <div class="symbol-cell" :class="{
+                                        'winning-line': isWinningCell(colIndex, rowIndex),
+                                        'wild-symbol': isWildSymbol(cell.id) && !cell.scatter,
+                                        'scatter-symbol': cell.scatter
+                                    }">
+                                        {{ getSymbolIcon(cell.id) }}
+                                    </div>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-col>
+                </v-row>
+
+                <!-- Информация о Wild -->
+                <v-row justify="center" class="mt-2">
+                    <v-col cols="auto" v-if="currentWildSymbol">
+                        <v-chip color="warning">Wild: {{ getSymbolName(currentWildSymbol) }}</v-chip>
+                    </v-col>
+                </v-row>
+
+                <!-- Модальное окно крупного выигрыша (не блокирует интерфейс) -->
+                <v-dialog v-model="showBigWinModal" max-width="400" :persistent="false">
+                    <v-card>
+                        <v-card-title class="text-h5 bg-success text-white">Большой выигрыш!</v-card-title>
+                        <v-card-text class="text-center pa-4">
+                            <div class="text-h2 animate__animated animate__bounceIn">{{ bigWinAmount.toFixed(2) }} BYN</div>
+                            <v-progress-circular indeterminate color="success" class="mt-3"></v-progress-circular>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-btn color="primary" block @click="closeBigWinModal">Закрыть</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+        const { createVuetify } = Vuetify;
+
+        const vuetify = createVuetify({
+            theme: { defaultTheme: 'dark' },
+        });
+
+        // Конфигурация символов
+        const symbolsConfig = [
+            { id: 'sym1', name: 'Семёрка', icon: '7', value: 10, scatter: false },
+            { id: 'sym2', name: 'Вишня', icon: '🍒', value: 5, scatter: false },
+            { id: 'sym3', name: 'Лимон', icon: '🍋', value: 3, scatter: false },
+            { id: 'sym4', name: 'Апельсин', icon: '🍊', value: 3, scatter: false },
+            { id: 'sym5', name: 'Колокол', icon: '🔔', value: 8, scatter: false },
+            { id: 'sym6', name: 'Бар', icon: '🔷', value: 6, scatter: false },
+            { id: 'scatter', name: 'Scatter', icon: '⭐', value: 0, scatter: true },
+        ];
+
+        const symbolProbabilities = [
+            { id: 'sym1', prob: 0.15 },
+            { id: 'sym2', prob: 0.2 },
+            { id: 'sym3', prob: 0.2 },
+            { id: 'sym4', prob: 0.2 },
+            { id: 'sym5', prob: 0.1 },
+            { id: 'sym6', prob: 0.1 },
+            { id: 'scatter', prob: 0.05 },
+        ];
+
+        // Линии выплат (20 линий)
+        const paylines = [
+            [0,0,0,0,0], [1,1,1,1,1], [2,2,2,2,2], [3,3,3,3,3], [4,4,4,4,4],
+            [0,1,2,3,4], [4,3,2,1,0], [1,0,1,2,3], [2,1,0,1,2], [3,2,1,0,1],
+            [0,1,2,1,0], [1,2,3,2,1], [2,3,4,3,2], [3,4,3,2,1], [4,3,2,3,4],
+            [0,0,1,2,2], [4,4,3,2,2], [1,2,3,2,1], [2,1,2,3,3], [3,2,1,2,3],
+        ];
+
+        // Уменьшенные в 20 раз выплаты (были: 20,100,500 и т.д. -> стали: 1,5,25 и т.д.)
+        const payouts = {
+            sym1: { 3: 1, 4: 5, 5: 25 },      // 20/20=1, 100/20=5, 500/20=25
+            sym2: { 3: 0.5, 4: 2, 5: 7.5 },   // 10/20=0.5, 40/20=2, 150/20=7.5
+            sym3: { 3: 0.25, 4: 1, 5: 4 },    // 5/20=0.25, 20/20=1, 80/20=4
+            sym4: { 3: 0.25, 4: 1, 5: 4 },    // аналогично sym3
+            sym5: { 3: 0.75, 4: 3, 5: 10 },   // 15/20=0.75, 60/20=3, 200/20=10
+            sym6: { 3: 0.4, 4: 1.5, 5: 6 },   // 8/20=0.4, 30/20=1.5, 120/20=6
+        };
+
+        const app = createApp({
+            setup() {
+                const balance = ref(1000);          // начальный баланс 1000 BYN
+                const bet = ref(0.2);                // минимальная ставка 0.20 BYN
+                const minBet = ref(0.2);
+                const maxBet = ref(100);
+                const betStep = ref(0.2);
+
+                const finalGrid = ref([]);          // финальное поле после остановки
+                const displayedGrid = ref([]);       // отображаемое поле (во время вращения меняется)
+                const spinning = ref([false, false, false, false, false]);
+                const spinningActive = computed(() => spinning.value.some(s => s));
+
+                const currentWildSymbol = ref(null);
+                const wildMultiplier = ref(null);
+                const freeSpinsLeft = ref(0);
+                const isFreeSpin = computed(() => freeSpinsLeft.value > 0);
+
+                const showBigWinModal = ref(false);
+                const bigWinAmount = ref(0);
+                let bigWinTimer = null;
+
+                const winningCells = ref([]);
+
+                // Для плавной анимации с requestAnimationFrame
+                let animationFrame = null;
+                let lastUpdate = 0;
+
+                const log = (msg) => console.log('[Slot]', msg);
+
+                function randomSymbol() {
+                    const r = Math.random();
+                    let cum = 0;
+                    for (let s of symbolProbabilities) {
+                        cum += s.prob;
+                        if (r < cum) return s.id;
+                    }
+                    return 'sym1';
+                }
+
+                function generateRandomGrid() {
+                    const newGrid = [];
+                    for (let col = 0; col < 5; col++) {
+                        const column = [];
+                        for (let row = 0; row < 5; row++) {
+                            const id = randomSymbol();
+                            const sym = symbolsConfig.find(s => s.id === id);
+                            column.push({ 
+                                id, 
+                                scatter: sym.scatter,
+                                wildMultiplier: null,
+                            });
+                        }
+                        newGrid.push(column);
+                    }
+                    return newGrid;
+                }
+
+                function selectRandomWildSymbol() {
+                    const normalSymbols = symbolsConfig.filter(s => !s.scatter);
+                    const randomIndex = Math.floor(Math.random() * normalSymbols.length);
+                    return normalSymbols[randomIndex].id;
+                }
+
+                function isWildSymbol(symbolId) {
+                    return currentWildSymbol.value === symbolId && symbolId !== 'scatter';
+                }
+
+                function getSymbolIcon(symbolId) {
+                    const sym = symbolsConfig.find(s => s.id === symbolId);
+                    return sym ? sym.icon : '?';
+                }
+
+                function getSymbolName(symbolId) {
+                    const sym = symbolsConfig.find(s => s.id === symbolId);
+                    return sym ? sym.name : '?';
+                }
+
+                function countScatters(grid) {
+                    let count = 0;
+                    for (let col = 0; col < 5; col++) {
+                        for (let row = 0; row < 5; row++) {
+                            if (grid[col][row].scatter) count++;
+                        }
+                    }
+                    return count;
+                }
+
+                function calculateWinnings(grid, wildId, multipliers = {}) {
+                    let totalWin = 0;
+                    const winCells = new Set();
+
+                    paylines.forEach(line => {
+                        const symbolsOnLine = line.map((row, col) => ({
+                            ...grid[col][row],
+                            col,
+                            row,
+                        }));
+
+                        let firstReal = null;
+                        for (let i = 0; i < symbolsOnLine.length; i++) {
+                            const cell = symbolsOnLine[i];
+                            if (!cell.scatter && !isWildSymbol(cell.id)) {
+                                firstReal = cell.id;
+                                break;
+                            }
+                        }
+                        if (firstReal === null) return;
+
+                        let comboLength = 0;
+                        for (let i = 0; i < symbolsOnLine.length; i++) {
+                            const cell = symbolsOnLine[i];
+                            if (cell.scatter) break;
+                            if (cell.id === firstReal || isWildSymbol(cell.id)) {
+                                comboLength++;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        if (comboLength >= 3) {
+                            const payoutMultiplier = payouts[firstReal]?.[comboLength];
+                            if (payoutMultiplier !== undefined) {
+                                let lineMultiplier = 1;
+                                for (let i = 0; i < comboLength; i++) {
+                                    const cell = symbolsOnLine[i];
+                                    if (isWildSymbol(cell.id) && cell.wildMultiplier) {
+                                        lineMultiplier *= cell.wildMultiplier;
+                                    }
+                                }
+                                const winAmount = payoutMultiplier * bet.value * lineMultiplier;
+                                totalWin += winAmount;
+                                for (let i = 0; i < comboLength; i++) {
+                                    const cell = symbolsOnLine[i];
+                                    winCells.add(`${cell.col},${cell.row}`);
+                                }
+                            }
+                        }
+                    });
+
+                    const winCellsArray = Array.from(winCells).map(coord => {
+                        const [col, row] = coord.split(',').map(Number);
+                        return { col, row };
+                    });
+
+                    return { totalWin, winCells: winCellsArray };
+                }
+
+                // Плавное обновление символов во вращающихся колонках (requestAnimationFrame)
+                function startAnimation() {
+                    if (animationFrame) cancelAnimationFrame(animationFrame);
+                    
+                    const update = (timestamp) => {
+                        if (!spinningActive.value) {
+                            animationFrame = null;
+                            return;
+                        }
+                        if (timestamp - lastUpdate > 30) {
+                            lastUpdate = timestamp;
+                            const newDisplayed = displayedGrid.value.map((col, colIndex) => {
+                                if (!spinning.value[colIndex]) return col;
+                                return col.map(cell => {
+                                    const newId = randomSymbol();
+                                    const sym = symbolsConfig.find(s => s.id === newId);
+                                    return { 
+                                        id: newId, 
+                                        scatter: sym.scatter,
+                                        wildMultiplier: cell.wildMultiplier,
+                                    };
+                                });
+                            });
+                            displayedGrid.value = newDisplayed;
+                        }
+                        animationFrame = requestAnimationFrame(update);
+                    };
+                    animationFrame = requestAnimationFrame(update);
+                }
+
+                function stopAnimation() {
+                    if (animationFrame) {
+                        cancelAnimationFrame(animationFrame);
+                        animationFrame = null;
+                    }
+                }
+
+                // Остановка вращения и финализация
+                function stopSpin() {
+                    stopAnimation();
+                    spinning.value = [false, false, false, false, false];
+                    displayedGrid.value = finalGrid.value.map(col => col.map(cell => ({ ...cell })));
+
+                    const { totalWin, winCells } = calculateWinnings(finalGrid.value, currentWildSymbol.value, wildMultiplier.value);
+                    winningCells.value = winCells;
+
+                    if (totalWin > 0) {
+                        balance.value = Math.round((balance.value + totalWin) * 100) / 100;
+                        log(`Выигрыш: ${totalWin.toFixed(2)} BYN`);
+                        if (totalWin > bet.value * 2) {
+                            showBigWinModal.value = true;
+                            bigWinAmount.value = totalWin;
+                            if (bigWinTimer) clearTimeout(bigWinTimer);
+                            bigWinTimer = setTimeout(() => {
+                                showBigWinModal.value = false;
+                            }, 3000);
+                        }
+                    }
+
+                    // Проверка бонусов (только добавление фриспинов, без автоспина)
+                    const scatterCnt = countScatters(finalGrid.value);
+                    if (scatterCnt >= 3 && !isFreeSpin.value) {
+                        freeSpinsLeft.value += 10;
+                        log(`Бонус активирован! 10 фриспинов (нажимайте Spin для использования)`);
+                    }
+                    if (isFreeSpin.value && scatterCnt >= 2) {
+                        freeSpinsLeft.value += 3;
+                        log(`+3 фриспина за 2 Scatter`);
+                    }
+
+                    setTimeout(() => {
+                        winningCells.value = [];
+                    }, 2000);
+                }
+
+                async function spin() {
+                    if (!canSpin.value || spinningActive.value) return;
+
+                    if (!isFreeSpin.value) {
+                        balance.value = Math.round((balance.value - bet.value) * 100) / 100;
+                    } else {
+                        freeSpinsLeft.value--;
+                    }
+
+                    currentWildSymbol.value = selectRandomWildSymbol();
+                    wildMultiplier.value = null;
+                    if (isFreeSpin.value) {
+                        const mults = [2, 3, 5];
+                        wildMultiplier.value = mults[Math.floor(Math.random() * mults.length)];
+                    }
+
+                    const newFinalGrid = generateRandomGrid();
+                    if (isFreeSpin.value && wildMultiplier.value) {
+                        for (let col = 0; col < 5; col++) {
+                            for (let row = 0; row < 5; row++) {
+                                if (newFinalGrid[col][row].id === currentWildSymbol.value) {
+                                    newFinalGrid[col][row].wildMultiplier = wildMultiplier.value;
+                                }
+                            }
+                        }
+                    }
+                    finalGrid.value = newFinalGrid;
+
+                    spinning.value = [true, true, true, true, true];
+                    displayedGrid.value = finalGrid.value.map(col => col.map(cell => ({ ...cell })));
+
+                    startAnimation();
+
+                    const scatterCount = countScatters(finalGrid.value);
+                    const longSpinColumns = [];
+                    if (scatterCount === 2) {
+                        for (let col = 0; col < 5; col++) {
+                            let hasScatter = false;
+                            for (let row = 0; row < 5; row++) {
+                                if (finalGrid.value[col][row].scatter) {
+                                    hasScatter = true;
+                                    break;
+                                }
+                            }
+                            if (!hasScatter) longSpinColumns.push(col);
+                        }
+                        log(`2 Scatter, удлиняем вращение колонок: ${longSpinColumns.join(', ')}`);
+                    }
+
+                    for (let col = 0; col < 5; col++) {
+                        let delay = 400 + col * 250;
+                        if (longSpinColumns.includes(col)) {
+                            delay += 1000;
+                        }
+                        setTimeout(() => {
+                            spinning.value[col] = false;
+                            if (!spinning.value.some(v => v)) {
+                                stopSpin();
+                            }
+                        }, delay);
+                    }
+                }
+
+                const canSpin = computed(() => {
+                    if (isFreeSpin.value) return true;
+                    return balance.value >= bet.value - 0.001; // допуск на погрешность
+                });
+
+                function decreaseBet() {
+                    let newBet = bet.value - betStep.value;
+                    if (newBet < minBet.value) newBet = minBet.value;
+                    bet.value = Math.round(newBet * 100) / 100;
+                }
+
+                function increaseBet() {
+                    let newBet = bet.value + betStep.value;
+                    if (newBet > maxBet.value) newBet = maxBet.value;
+                    bet.value = Math.round(newBet * 100) / 100;
+                }
+
+                function isWinningCell(col, row) {
+                    return winningCells.value.some(cell => cell.col === col && cell.row === row);
+                }
+
+                function closeBigWinModal() {
+                    showBigWinModal.value = false;
+                    if (bigWinTimer) clearTimeout(bigWinTimer);
+                }
+
+                // Инициализация
+                finalGrid.value = generateRandomGrid();
+                displayedGrid.value = finalGrid.value.map(col => col.map(cell => ({ ...cell })));
+                currentWildSymbol.value = selectRandomWildSymbol();
+
+                return {
+                    balance,
+                    bet,
+                    minBet,
+                    maxBet,
+                    betStep,
+                    displayedGrid,
+                    spinning,
+                    spinningActive,
+                    currentWildSymbol,
+                    freeSpinsLeft,
+                    isFreeSpin,
+                    showBigWinModal,
+                    bigWinAmount,
+                    winningCells,
+                    spin,
+                    decreaseBet,
+                    increaseBet,
+                    canSpin,
+                    isWinningCell,
+                    getSymbolIcon,
+                    getSymbolName,
+                    isWildSymbol,
+                    closeBigWinModal,
+                };
+            }
+        });
+
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>
