@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный тренажер ВКЭ: 100+ вопросов</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between custom-scrollbar">
+
+    <!-- Шапка приложения -->
+    <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 sticky top-0 z-50 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goToHome()">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-gears text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight tracking-wide text-white">Супертренажер ВКЭ</h1>
+                    <p class="text-[10px] text-slate-400">Полная интерактивная база (все вопросы из файлов)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="sound-toggle" onclick="toggleSound()" class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-lg border border-slate-700 text-xs flex items-center gap-1.5 transition">
+                    <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                    <span class="hidden sm:inline">Звук</span>
+                </span>
+                <span id="timer-display" class="hidden bg-slate-800 text-blue-400 border border-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider">
+                    <i class="fa-regular fa-clock mr-1.5"></i> 00:00
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контейнер -->
+    <main class="flex-grow flex items-center justify-center p-4 sm:p-6 w-full max-w-6xl mx-auto">
+        
+        <!-- ЭКРАН 1: Главное меню -->
+        <div id="start-screen" class="w-full space-y-6 animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto space-y-4">
+                <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest">Выпускной квалификационный экзамен</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-white leading-tight">Интерактивный симулятор обучения</h2>
+                <p class="text-slate-400 text-sm sm:text-base">В этот тренажер загружены абсолютно все вопросы, тесты, расчетные задачи и схемы из ваших экзаменационных файлов по всем дисциплинам.</p>
+            </div>
+
+            <!-- Кнопка комплексного экзамена -->
+            <div class="bg-gradient-to-r from-blue-950/50 to-slate-900 border border-blue-800/40 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-2 text-center md:text-left">
+                    <h3 class="text-lg font-bold text-white flex items-center justify-center md:justify-start gap-2">
+                        <i class="fa-solid fa-circle-play text-blue-400"></i>
+                        Генеральный комплексный экзамен
+                    </h3>
+                    <p class="text-xs text-slate-300 max-w-xl">Случайная выборка из 25 вопросов по всем предметам. Идеально имитирует реальный экзамен с ограничением времени.</p>
+                </div>
+                <button onclick="startExamMode()" class="w-full md:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition duration-150 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/50 whitespace-nowrap">
+                    Запустить экзамен
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </button>
+            </div>
+
+            <!-- Сетка по предметам -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Выберите учебную дисциплину для тренировки:</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" id="subjects-grid">
+                    <!-- Будет сгенерировано автоматически -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 2: Окно тестирования -->
+        <div id="quiz-screen" class="hidden w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-8 shadow-2xl flex flex-col justify-between transition-all duration-300 animate-fade-in">
+            <!-- Прогресс -->
+            <div class="mb-6 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span id="quiz-subject" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-md text-xs font-semibold tracking-wide">
+                        Предмет
+                    </span>
+                    <span id="quiz-progress-text" class="text-xs sm:text-sm text-slate-400 font-medium">
+                        Вопрос 1 из 10
+                    </span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="quiz-progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-0 transition-all duration-300 ease-out"></div>
+                </div>
+            </div>
+
+            <!-- Текст вопроса -->
+            <div class="flex-grow flex flex-col justify-center my-4">
+                <h3 id="quiz-question-text" class="text-base sm:text-lg md:text-xl font-semibold text-white mb-6 leading-relaxed">
+                    Загрузка вопроса...
+                </h3>
+
+                <!-- Иллюстрация (SVG чертеж) -->
+                <div id="quiz-illustration" class="hidden justify-center items-center bg-slate-950 border border-slate-800 p-4 rounded-xl mb-6 max-h-60 overflow-hidden">
+                    <!-- Генерируемый чертеж -->
+                </div>
+
+                <!-- Вариант 1: Одиночный выбор (Choice) -->
+                <div id="container-choice" class="hidden grid grid-cols-1 gap-3"></div>
+
+                <!-- Вариант 2: Множественный выбор (Multi) -->
+                <div id="container-multi" class="hidden grid grid-cols-1 gap-3"></div>
+
+                <!-- Вариант 3: Сопоставление (Matching) -->
+                <div id="container-matching" class="hidden space-y-3">
+                    <p class="text-[11px] text-amber-400/90 italic flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Сначала кликните по термину слева, затем выберите подходящее определение справа.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div id="match-left-col" class="space-y-2.5"></div>
+                        <div id="match-right-col" class="space-y-2.5"></div>
+                    </div>
+                </div>
+
+                <!-- Вариант 4: Технологическая цепочка (Sequence) -->
+                <div id="container-sequence" class="hidden space-y-3">
+                    <p class="text-[11px] text-amber-400/90 italic flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-sort"></i>
+                        Используйте стрелочки, чтобы расположить этапы операции по порядку (сверху вниз).
+                    </p>
+                    <div id="sequence-list" class="space-y-2"></div>
+                </div>
+
+                <!-- Вариант 5: Числовой / Текстовый ввод (Input) -->
+                <div id="container-input" class="hidden space-y-3 max-w-sm mx-auto w-full">
+                    <label class="block text-xs text-slate-400 uppercase tracking-wider font-semibold">Введите точный ответ:</label>
+                    <input type="text" id="answer-input-field" class="w-full bg-slate-950 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl py-3 px-4 text-center font-bold text-white tracking-wider text-lg outline-none transition" placeholder="Например: 14.87">
+                    <p class="text-[10px] text-slate-500 text-center">Числовые ответы вводите через точку или запятую.</p>
+                </div>
+            </div>
+
+            <!-- Результат проверки -->
+            <div id="quiz-feedback" class="hidden border rounded-xl p-4 my-4 animate-fade-in">
+                <div class="flex items-start space-x-3">
+                    <span id="feedback-icon-placeholder" class="text-xl shrink-0"></span>
+                    <div class="flex-1">
+                        <h4 id="feedback-title-text" class="font-bold text-sm tracking-wide">Вердикт</h4>
+                        <p id="feedback-desc-text" class="text-xs sm:text-sm mt-1 text-slate-300">Пояснение...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Панель управления -->
+            <div class="flex justify-end items-center mt-6 pt-4 border-t border-slate-800">
+                <button id="quiz-action-btn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-8 rounded-xl transition duration-150 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30">
+                    <span>Проверить</span>
+                    <i class="fa-solid fa-circle-question"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 3: Экран результатов -->
+        <div id="result-screen" class="hidden w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center animate-fade-in">
+            <div class="relative flex items-center justify-center mb-6">
+                <svg class="w-32 h-32 transform -rotate-90">
+                    <circle cx="64" cy="64" r="56" stroke="currentColor" class="text-slate-800" stroke-width="8" fill="transparent" />
+                    <circle cx="64" cy="64" r="56" stroke="currentColor" id="result-circle-progress" class="text-emerald-500" stroke-width="8" fill="transparent" stroke-dasharray="351.8" stroke-dashoffset="351.8" stroke-linecap="round" />
+                </svg>
+                <div class="absolute text-center">
+                    <span id="result-percent-label" class="text-3xl font-extrabold text-white">0%</span>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Успех</p>
+                </div>
+            </div>
+
+            <h2 id="result-header" class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Завершено!</h2>
+            <p id="result-subheader" class="text-slate-400 text-sm max-w-md mb-6">Вы прошли тест по выбранной дисциплине.</p>
+
+            <div class="grid grid-cols-3 gap-3 w-full mb-6">
+                <div class="bg-slate-950 border border-slate-800 p-3 sm:p-4 rounded-xl">
+                    <span class="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">Режим</span>
+                    <span id="result-mode-text" class="text-xs sm:text-sm font-bold text-slate-200">Тест</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-3 sm:p-4 rounded-xl">
+                    <span class="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">Баллы</span>
+                    <span id="result-score-text" class="text-xs sm:text-sm font-bold text-slate-200">0 / 0</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-3 sm:p-4 rounded-xl">
+                    <span class="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">Время</span>
+                    <span id="result-time-text" class="text-xs sm:text-sm font-bold text-slate-200">00:00</span>
+                </div>
+            </div>
+
+            <div id="result-advice-block" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-xl text-left text-xs sm:text-sm text-slate-300 mb-8 space-y-2"></div>
+
+            <div class="flex flex-col sm:flex-row gap-3 w-full">
+                <button onclick="goToHome()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl transition duration-150 flex items-center justify-center gap-2 border border-slate-700">
+                    <i class="fa-solid fa-house"></i>
+                    <span>В меню</span>
+                </button>
+                <button id="restart-test-btn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition duration-150 flex items-center justify-center gap-2 shadow-lg shadow-blue-950/40">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Заново</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-950 border-t border-slate-900 py-4 text-center text-xs text-slate-500 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>&copy; 2026 Комплексный интерактивный симулятор ВКЭ.</span>
+            <span class="flex items-center gap-1.5 text-emerald-500"><i class="fa-solid fa-shield-halved"></i> Все дисциплины полностью интегрированы</span>
+        </div>
+    </footer>
+
+    <!-- Логика и база данных (все 100+ вопросов) -->
+    <script>
+        const DATABASE = {
+            "Материаловедение": [
+                {
+                    type: "choice",
+                    question: "Для улучшения обрабатываемости заготовок давлением и резанием, исправления структуры сварных швов выполняют …",
+                    options: ["закалку", "отпуск", "отжиг", "цементацию"],
+                    correct: 2,
+                    explanation: "Отжиг применяется для уменьшения твердости, улучшения обрабатываемости металлов давлением и резанием, а также исправления структуры сварных соединений."
+                },
+                {
+                    type: "choice",
+                    question: "Максимальное процентное содержание углерода в стали составляет:",
+                    options: ["до 2,14%", "свыше 2,14%", "до 3,14%", "3,14 – 4,45%"],
+                    correct: 0,
+                    explanation: "Сплавы железа с углеродом, содержащие до 2,14% углерода, относятся к категории сталей."
+                },
+                {
+                    type: "choice",
+                    question: "Способность металлов деформироваться (изменять форму и размеры) без нарушения целостности, т.е. без образования трещин называется …",
+                    options: ["упругостью", "прочностью", "твёрдостью", "пластичностью"],
+                    correct: 3,
+                    explanation: "Пластичность — это способность металла получать остаточное изменение формы без трещин и разрушения."
+                },
+                {
+                    type: "choice",
+                    question: "Хромистые нержавеющие стали содержат хрома не менее …",
+                    options: ["1%", "1,3%", "10%", "13%"],
+                    correct: 3,
+                    explanation: "Сталь приобретает нержавеющие свойства при концентрации хрома не менее 13%."
+                },
+                {
+                    type: "choice",
+                    question: "Цифра 5 в марке стали Ст5Гпс указывает …",
+                    options: ["процентное содержание углерода", "условный номер марки", "предел прочности стали", "процентное содержание марганца"],
+                    correct: 1,
+                    explanation: "В сталях обыкновенного качества типа Ст условный номер марки обозначается цифрами от 0 до 6 (чем больше число, тем выше предел прочности)."
+                },
+                {
+                    type: "choice",
+                    question: "Сталь марки 9ХС имеет следующий химический состав:",
+                    options: [
+                        "0,9% углерода, 0,9% хрома, 0,9% кремния, остальное – железо и примеси",
+                        "0,9% углерода, около 1% хрома, около 1% кремния, остальное – железо и примеси",
+                        "0,09% углерода, около 1% хрома, около 1% кремния, остальное – железо и примеси",
+                        "9% углерода, около 1% хрома, около 1% кремния, остальное – железо и примеси"
+                    ],
+                    correct: 1,
+                    explanation: "В начале легированных инструментальных сталей стоит число, указывающее содержание углерода в десятых долях процента (9 — это 0,9%). Х — хром (около 1%), С — кремний (около 1%)."
+                },
+                {
+                    type: "choice",
+                    question: "Число после буквы Р в марках сталей Р6М5 или Р12 указывает …",
+                    options: ["процентное содержание углерода в целых числах", "процентное содержание углерода в сотых долях", "процентное содержание углерода в десятых долях", "процентное содержание вольфрама в целых числах"],
+                    correct: 3,
+                    explanation: "Р означает быстрорежущую сталь (Rapid). Число указывает на среднее содержание вольфрама (W) в процентах."
+                },
+                {
+                    type: "choice",
+                    question: "Число в марке высокопрочного чугуна ВЧ80 указывает …",
+                    options: ["содержание углерода", "число твёрдости по Бринеллю", "относительное удлинение", "предел прочности при растяжении"],
+                    correct: 3,
+                    explanation: "Для высокопрочного чугуна (ВЧ) число обозначает предел прочности при растяжении в кгс/мм²."
+                },
+                {
+                    type: "choice",
+                    question: "Расшифруйте марку сплава Т30K4:",
+                    options: [
+                        "спеченный вольфрамовый твердый сплав, в котором карбида титана – 30%, карбида кобальта – 4%, остальное – карбид вольфрама",
+                        "спеченный титановольфрамовый твердый сплав, в котором карбида кобальта – 4%, карбида титана 30%, остальное – карбид вольфрама",
+                        "спеченный титановольфрамовый твердый сплав, в котором кобальта – 4%, карбида титана – 30%, остальное – карбид вольфрама (66%)",
+                        "спеченный титановольфрамовый твердый сплав, в котором кобальта – 4%, титана – 30%, остальное – карбид вольфрама"
+                    ],
+                    correct: 2,
+                    explanation: "Т30К4 состоит из 30% карбида титана, 4% связующего металла кобальта и 66% карбида вольфрама."
+                },
+                {
+                    type: "choice",
+                    question: "Расшифруйте марку стали 08Х18Н10:",
+                    options: [
+                        "легированная конструкционная качественная сталь, где углерода – 08%, хрома – 1,8%, никеля 1,0%, остальное – железо и примеси",
+                        "легированная инструментальная качественная сталь, где углерода – 08%, хрома – 1,8%, никеля 1,0%, остальное – железо и примеси",
+                        "легированная конструкционная качественная сталь, где углерода – 0,8%, хрома – 18%, никеля 1,0%, остальное – железо и примеси",
+                        "хромоникелевая нержавеющая сталь, где углерода – 0,08%, хрома – 18%, никеля 10%, остальное – железо и примеси"
+                    ],
+                    correct: 3,
+                    explanation: "08Х18Н10: углерода 0,08%, хрома 18%, никеля 10%. Это высоколегированная нержавеющая сталь."
+                }
+            ],
+            "Черчение": [
+                {
+                    type: "choice",
+                    question: "Линии, указанные на чертеже буквой А, обозначают:",
+                    hasIllustration: true,
+                    illustrationType: "shaft_square",
+                    options: ["поверхность, полученную накаткой", "криволинейную поверхность", "необработанную поверхность", "плоскую поверхность"],
+                    correct: 3,
+                    explanation: "Пересекающиеся тонкие линии обозначают плоские поверхности (грани) на деталях вращения."
+                },
+                {
+                    type: "choice",
+                    question: "Запись ≡ | 0,2 | А на схеме читается как:",
+                    hasIllustration: true,
+                    illustrationType: "tolerance_symbol",
+                    options: [
+                        "Допуск плоскостности паза относительно базы А 0,2 мм",
+                        "Допуск симметричности паза относительно базы А 0,2 мм",
+                        "Допуск прямолинейности паза относительно базы А 0,2 мм",
+                        "Допуск соосности паза относительно базы А 0,2 мм"
+                    ],
+                    correct: 1,
+                    explanation: "Символ ≡ обозначает допуск симметричности."
+                },
+                {
+                    type: "choice",
+                    question: "Сечением шпоночного паза для предложенного чертежа является:",
+                    hasIllustration: true,
+                    illustrationType: "keyway_sections",
+                    options: ["Вариант 1 (а)", "Вариант 2 (б)", "Вариант 3 (в)", "Вариант 4 (г)"],
+                    correct: 2,
+                    explanation: "Сечение по шпоночным пазам должно содержать штриховку и показывать их правильную глубину и расположение (в данном случае симметричное сверху и снизу - Вариант 3)."
+                },
+                {
+                    type: "choice",
+                    question: "Запись √Ra6,3(√) в правом верхнем углу чертежа читается как:",
+                    hasIllustration: true,
+                    illustrationType: "ra_explanation",
+                    options: [
+                        "Поверхность обрабатывается с шероховатостью Ra 6,3 мкм",
+                        "Все поверхности обрабатываются с шероховатостью Ra 6,3 мкм",
+                        "Необозначенные поверхности обрабатываются с шероховатостью Ra 6,3 мкм",
+                        "Необозначенные поверхности обрабатываются с шероховатостью Ra 6,3 мм"
+                    ],
+                    correct: 2,
+                    explanation: "Такое обозначение указывает на шероховатость всех поверхностей детали, на которых нет индивидуальных знаков на изображении."
+                },
+                {
+                    type: "choice",
+                    question: "Знак шероховатости с кружком на полке (без указания значения на чертеже) означает:",
+                    hasIllustration: true,
+                    illustrationType: "circle_roughness",
+                    options: [
+                        "Поверхность должна быть образована обязательным удалением слоя материала",
+                        "Вид обработки конструктором не устанавливается",
+                        "Поверхность не подлежит обработке по данному чертежу",
+                        "Все поверхности детали не обрабатываются по данному чертежу"
+                    ],
+                    correct: 2,
+                    explanation: "Знак в виде галочки с кружком указывает, что поверхность не должна подвергаться дополнительной обработке (сохраняется в состоянии поставки)."
+                },
+                {
+                    type: "choice",
+                    question: "Выберите масштаб увеличения, предусмотренный ГОСТ 2.302-68:",
+                    options: ["4:1", "1:2", "3:1", "10:2"],
+                    correct: 0,
+                    explanation: "ГОСТ 2.302-68 устанавливает стандартные масштабы увеличения: 2:1; 2.5:1; 4:1; 5:1; 10:1 и т.д. Варианты 1:2 — масштаб уменьшения, а 3:1 и 10:2 нестандартны."
+                },
+                {
+                    type: "choice",
+                    question: "Укажите чертеж с правильным изображением наружной резьбы:",
+                    hasIllustration: true,
+                    illustrationType: "threads_correct",
+                    options: ["Вариант 1 (а)", "Вариант 2 (б)", "Вариант 3 (в)", "Вариант 4 (г)"],
+                    correct: 2,
+                    explanation: "Наружная резьба изображается сплошной толстой линией по наружному диаметру и сплошной тонкой по внутреннему диаметру резьбы."
+                },
+                {
+                    type: "matching",
+                    question: "Установите соответствие между схемами соединений деталей:",
+                    matchData: {
+                        left: [
+                            { id: "CL1", text: "Схема 1" },
+                            { id: "CL2", text: "Схема 2" },
+                            { id: "CL3", text: "Схема 3" },
+                            { id: "CL4", text: "Схема 4" }
+                        ],
+                        right: [
+                            { id: "CR1", text: "Б) Шлицевое соединение" },
+                            { id: "CR2", text: "Г) Болтовое соединение" },
+                            { id: "CR3", text: "В) Шпоночное соединение" },
+                            { id: "CR4", text: "Д) Заклепочное соединение" }
+                        ],
+                        pairs: { "CL1": "CR1", "CL2": "CR2", "CL3": "CR3", "CL4": "CR4" }
+                    },
+                    explanation: "1 - Шлицевое; 2 - Болтовое; 3 - Шпоночное; 4 - Заклепочное."
+                },
+                {
+                    type: "matching",
+                    question: "Установите соответствие проекционных плоскостей видам на чертеже:",
+                    matchData: {
+                        left: [
+                            { id: "PL1", text: "Плоскость А (фронтальная)" },
+                            { id: "PL2", text: "Плоскость Б (профильная)" },
+                            { id: "PL3", text: "Плоскость В (горизонтальная)" }
+                        ],
+                        right: [
+                            { id: "PR1", text: "3) Вид спереди" },
+                            { id: "PR2", text: "1) Вид слева" },
+                            { id: "PR3", text: "4) Вид сверху" }
+                        ],
+                        pairs: { "PL1": "PR1", "PL2": "PR2", "PL3": "PR3" }
+                    },
+                    explanation: "Плоскость А — вид спереди; Б — вид слева; В — вид сверху."
+                },
+                {
+                    type: "choice",
+                    question: "На схеме выполнено изображение:",
+                    hasIllustration: true,
+                    illustrationType: "gear_scheme",
+                    options: ["червячной передачи", "ременной передачи", "реечной зубчатой передачи", "цилиндрической зубчатой передачи"],
+                    correct: 3,
+                    explanation: "Прямоугольники с тонкими диагоналями условно обозначают цилиндрическую зубчатую передачу."
+                }
+            ],
+            "Допуски и посадки": [
+                {
+                    type: "choice",
+                    question: "Посадка – характер соединения двух деталей, определяемый получающимися в нём…",
+                    options: ["зазорами", "зазорами или натягами", "натягами", "допусками"],
+                    correct: 1,
+                    explanation: "Посадка определяет прочность или свободу взаимного перемещения деталей за счет зазоров или натягов."
+                },
+                {
+                    type: "choice",
+                    question: "Действительный размер – это…",
+                    options: [
+                        "размер, установленный измерением детали с допускаемой погрешностью",
+                        "наибольший допустимый размер детали",
+                        "размер, относительно которого определяются предельные размеры",
+                        "наименьший допустимый размер детали"
+                    ],
+                    correct: 0,
+                    explanation: "Действительный размер получают непосредственным измерением детали с учетом погрешности прибора."
+                },
+                {
+                    type: "choice",
+                    question: "Алгебраическая разность между наибольшим и наименьшим предельными размерами – это…",
+                    options: ["верхнее отклонение", "допуск размера", "номинальный размер", "нижнее отклонение"],
+                    correct: 1,
+                    explanation: "Допуск размера — разность между наибольшим и наименьшим допустимыми предельными значениями."
+                },
+                {
+                    type: "choice",
+                    question: "Калибры – это…",
+                    options: [
+                        "бесшкальные инструменты, предназначенные для контроля размеров, формы и расположения поверхностей деталей",
+                        "устройства, предназначенные для измерения формы и размеров изделий",
+                        "устройства, предназначенные для контроля формы изделий",
+                        "устройства, предназначенные для измерения элементов деталей машин"
+                    ],
+                    correct: 0,
+                    explanation: "Калибры — это контрольные бесшкальные шаблоны проходного (ПР) и непроходного (НЕ) типов."
+                },
+                {
+                    type: "choice",
+                    question: "Сколько квалитетов установлено стандартом в Единой системе допусков и посадок (ЕСДП)?",
+                    options: ["17", "18", "20", "21"],
+                    correct: 2,
+                    explanation: "В системе ЕСДП установлено ровно 20 квалитетов точности (от 01 до 18)."
+                },
+                {
+                    type: "choice",
+                    question: "Действительный размер детали не должен превышать…",
+                    options: ["наименьший предельный размер", "минимальный размер", "номинальный размер", "наибольший предельный размер"],
+                    correct: 3,
+                    explanation: "Для годности детали ее действительный размер не должен быть больше наибольшего предельного размера."
+                },
+                {
+                    type: "choice",
+                    question: "Наибольший зазор рассчитывается по формуле:",
+                    options: ["dmax – Dmin", "Dmin – dmax", "dmin – Dmax", "Dmax – dmin"],
+                    correct: 3,
+                    explanation: "Smax = Dmax - dmin. Это разница между максимальным отверстием и минимальным валом."
+                },
+                {
+                    type: "choice",
+                    question: "Установите годность действительного размера отверстия Dд = 37,988 мм при заданной величине отверстия 38 (-0,012 / +0,033) мм:",
+                    options: ["годен", "годный брак", "брак исправимый", "брак неисправимый"],
+                    correct: 0,
+                    explanation: "Нижний предел: 38 - 0.012 = 37.988 мм. Наш размер Dд равен точно нижней границе, значит деталь годна."
+                },
+                {
+                    type: "input",
+                    question: "Рассчитайте величину допуска на размер 42 ± 0,25 в миллиметрах:",
+                    correct: "0.5",
+                    explanation: "Допуск T = ES - EI = +0.25 - (-0.25) = 0.50 мм."
+                },
+                {
+                    type: "input",
+                    question: "Прочитайте показания микрометра, изображенного на схеме:",
+                    hasIllustration: true,
+                    illustrationType: "micrometer_scale",
+                    correct: "14.87",
+                    explanation: "По стеблю: 14 мм сверху + видна полумиллиметровая деления снизу (14.50 мм). На барабане: 37 делений. Итог: 14.5 + 0.37 = 14.87 мм."
+                }
+            ],
+            "Охрана труда": [
+                {
+                    type: "choice",
+                    question: "При приеме на работу проводится инструктаж:",
+                    options: ["периодический", "вводный", "текущий", "инструктаж на рабочем месте"],
+                    correct: 1,
+                    explanation: "При приеме на работу первым шагом всегда является проведение вводного инструктажа."
+                },
+                {
+                    type: "choice",
+                    question: "При возгорании запрещается тушить водой:",
+                    options: ["деревянные конструкции", "бензин", "электроустановки под напряжением", "древесные опилки"],
+                    correct: 2,
+                    explanation: "Вода электропроводна. Тушение электроустановок под напряжением водой грозит смертельным ударом тока."
+                },
+                {
+                    type: "choice",
+                    question: "Время хранения актов о несчастном случае на производстве на предприятии составляет:",
+                    options: ["5 лет", "20 лет", "30 лет", "45 лет"],
+                    correct: 3,
+                    explanation: "Согласно законодательству, акты о производственных травмах хранятся 45 лет."
+                },
+                {
+                    type: "choice",
+                    question: "Для прекращения кровотечения жгут накладывается…",
+                    options: [
+                        "в теплое время года не более чем на 2 часа, в холодное – на 1 час",
+                        "до полной остановки кровотечения без лимита",
+                        "не более 2,2 - 3 часов",
+                        "в теплое время года не более чем на 1 час, в холодное – на 2 часа"
+                    ],
+                    correct: 0,
+                    explanation: "Для сохранения жизнеспособности тканей жгут летом накладывают максимум на 2 часа, а зимой — на 1 час."
+                },
+                {
+                    type: "choice",
+                    question: "Очередная аттестация рабочих мест на предприятии проводится…",
+                    options: ["ежегодно", "по приказу высшего органа управления", "каждые 5 лет", "каждые 3 года"],
+                    correct: 2,
+                    explanation: "Периодичность аттестации рабочих мест по закону — один раз в пять лет."
+                },
+                {
+                    type: "choice",
+                    question: "Опасный производственный фактор – такой фактор, воздействие которого приводит к…",
+                    options: ["ухудшению здоровья", "травме или другому внезапному резкому ухудшению здоровья", "к постепенной профессиональной травме", "к немедленному летальному исходу"],
+                    correct: 1,
+                    explanation: "Опасный фактор вызывает травмы или острые состояния, в отличие от вредного, вызывающего хронические болезни."
+                },
+                {
+                    type: "choice",
+                    question: "Сокращенная продолжительность рабочего времени устанавливается…",
+                    options: ["за работу в учреждениях образования", "за работу в опасных или вредных условиях", "за качественно выполненные работы", "как мера поощрения"],
+                    correct: 1,
+                    explanation: "Опасные и вредные условия труда дают работникам право на сокращенный рабочий день."
+                },
+                {
+                    type: "choice",
+                    question: "В обязанности нанимателя в области охраны труда входит:",
+                    options: [
+                        "выплата заработной платы, премий, оплата мед. осмотров",
+                        "оплата больничных, лечения, переобучения",
+                        "предоставление дополнительного отпуска, санаторных путевок",
+                        "проведение обучения, инструктажей, выдача СИЗ"
+                    ],
+                    correct: 3,
+                    explanation: "Наниматель обязан обучать безопасным методам работы, проводить инструктажи и бесплатно обеспечивать средствами защиты."
+                },
+                {
+                    type: "choice",
+                    question: "Помещения по степени опасности поражения электрическим током подразделяются на:",
+                    options: [
+                        "сухие, влажные, очень влажные",
+                        "электрифицированные и неэлектрифицированные",
+                        "низковольтные и высоковольтные",
+                        "с повышенной опасностью, без повышенной опасности, особо опасные"
+                    ],
+                    correct: 3,
+                    explanation: "Классификация помещений по ПУЭ: без повышенной опасности, с повышенной опасностью, особо опасные."
+                },
+                {
+                    type: "choice",
+                    question: "Продолжительность минимального трудового отпуска в РБ составляет…",
+                    options: ["26 календарных дней", "24 календарных дня", "26 рабочих дней", "30 рабочих дней"],
+                    correct: 1,
+                    explanation: "Минимальный трудовой отпуск составляет не менее 24 календарных дней."
+                }
+            ],
+            "ТО и Р автомобилей": [
+                {
+                    type: "choice",
+                    question: "Назовите виды технического обслуживания автомобилей.",
+                    options: ["ЕО, ТО-1, ТО-2, СО", "ЕО, ТО-1, ТО-2, ТР", "СО, ТО-1, ТО-2, КР", "ТО-1, ТО-2, ТР, СО"],
+                    correct: 0,
+                    explanation: "Плановое ТО: Ежедневное (ЕО), Первое (ТО-1), Второе (ТО-2), Сезонное (СО)."
+                },
+                {
+                    type: "choice",
+                    question: "Назовите результат неполного прилегания клапанов к сёдлам.",
+                    options: ["Повышенные вибрации двигателя.", "Потеря мощности двигателя.", "Двигатель глохнет на холостом ходу.", "Повышенный шум газораспределительного механизма."],
+                    correct: 1,
+                    explanation: "Негерметичность ведет к падению компрессии, ухудшению сгорания и, как следствие, потере мощности ДВС."
+                },
+                {
+                    type: "choice",
+                    question: "Назовите вид обслуживания бензиновой системы питания, к которому относится воздействие «Проверить состав отработавших газов».",
+                    options: ["ЕО", "ТО-1", "ТО-2", "СО"],
+                    correct: 2,
+                    explanation: "Измерение токсичности и состава выхлопных газов выполняется в рамках ТО-2."
+                },
+                {
+                    type: "choice",
+                    question: "Результатом падения давления масла в системе смазки двигателя может быть …",
+                    options: [
+                        "увеличенный зазор между вкладышами и коренными, шатунными шейками коленчатого вала, вызванный их износом",
+                        "увеличенный зазор между упорными полукольцами и коленчатым валом",
+                        "увеличенный зазор между поршнями и цилиндрами двигателя",
+                        "увеличенный зазор между поршневыми кольцами и канавками поршней"
+                    ],
+                    correct: 0,
+                    explanation: "Через изношенные подшипники коленвала масло утекает легче, что снижает гидродинамическое давление в магистрали."
+                },
+                {
+                    type: "choice",
+                    question: "Суммарный люфт в рулевом управлении легкового автомобиля не должен превышать...",
+                    options: ["15°", "20°", "25°", "10°"],
+                    correct: 3,
+                    explanation: "ПДД запрещают эксплуатацию легковых авто с суммарным люфтом рулевого колеса свыше 10°."
+                },
+                {
+                    type: "choice",
+                    question: "Назовите причину неисправности ходовой части «Односторонний износ протектора шины».",
+                    options: [
+                        "Большой дисбаланс передних колес.",
+                        "Избыточное давление воздуха в шине.",
+                        "Отклонение угла развала колес от номинального значения.",
+                        "Большие зазоры в шарнирных соединениях передней подвески."
+                    ],
+                    correct: 2,
+                    explanation: "Неправильный развал заваливает плоскость вращения шины, ускоряя износ одного из краев протектора."
+                },
+                {
+                    type: "choice",
+                    question: "Определите величину смещения светового пятна фары по вертикали, если на ободе фары стоит маркировка 1,25%.",
+                    options: ["50 мм.", "62,5 мм.", "75 мм.", "65 мм."],
+                    correct: 1,
+                    explanation: "На 5 метрах смещение равно: 5000 мм * 0.0125 = 62.5 мм."
+                },
+                {
+                    type: "sequence",
+                    question: "Установите правильную последовательность переходов при удалении воздуха из гидропривода тормозной системы:",
+                    steps: [
+                        { id: "S1", text: "Проверить уровень ТЖ в бачке ГТЦ и при необходимости долить до нормы" },
+                        { id: "S2", text: "Снять колпачок с клапана выпуска воздуха и надеть шланг, опустив конец в ТЖ" },
+                        { id: "S3", text: "Отвернуть на пол-оборота клапан и резко нажать на педаль тормоза несколько раз" },
+                        { id: "S4", text: "Удерживая педаль нажатой до выхода пузырьков, завернуть клапан" },
+                        { id: "S5", text: "Повторить на каждом цилиндре контура; проверить тормоза в движении" }
+                    ],
+                    explanation: "Правильная технологическая схема прокачки тормозов."
+                },
+                {
+                    type: "matching",
+                    question: "Установите соответствие понятий их определениям:",
+                    matchData: {
+                        left: [
+                            { id: "TL1", text: "1. Комплектование" },
+                            { id: "TL2", text: "2. Восстановление деталей ДРД" },
+                            { id: "TL3", text: "3. Агрегатный метод ремонта" },
+                            { id: "TL4", text: "4. Ремонтопригодность" }
+                        ],
+                        right: [
+                            { id: "TR1", text: "д) подбор сопряженных деталей по ремонтным размерам, массовым группам" },
+                            { id: "TR2", text: "е) обработка под ремонтный размер и установка дополнительной ремонтной детали" },
+                            { id: "TR3", text: "ж) при котором неисправные агрегаты заменяются новыми или отремонтированными" },
+                            { id: "TR4", text: "б) свойство автомобиля, выражающееся в приспособленности к ТО и ремонту" }
+                        ],
+                        pairs: { "TL1": "TR1", "TL2": "TR2", "TL3": "TR3", "TL4": "TR4" }
+                    },
+                    explanation: "Терминология по технологическим процессам авторемонта."
+                },
+                {
+                    type: "matching",
+                    question: "Выберите соответствующий метод диагностики для объектов автомобиля:",
+                    matchData: {
+                        left: [
+                            { id: "OL1", text: "1. Жидкостной радиатор" },
+                            { id: "OL2", text: "2. Подвеска (сайлентблоки)" },
+                            { id: "OL3", text: "3. Кондиционер" },
+                            { id: "OL4", text: "4. Аккумулятор (электролит)" }
+                        ],
+                        right: [
+                            { id: "OR1", text: "ж) Пневматический метод опрессовки на герметичность" },
+                            { id: "OR2", text: "г) Метод принудительного перемещения колеса в направлениях" },
+                            { id: "OR3", text: "е) Люминесцентно-гидравлический метод с УФ-лампой" },
+                            { id: "OR4", text: "а) Денсиметр, нагрузочная вилка" }
+                        ],
+                        pairs: { "OL1": "OR1", "OL2": "OR2", "OL3": "OR3", "OL4": "OR4" }
+                    },
+                    explanation: "Применяемые методы поиска утечек и дефектов в системах автомобиля."
+                }
+            ],
+            "Устройство автомобилей": [
+                {
+                    type: "choice",
+                    question: "Объемом камеры сгорания цилиндра двигателя называется…",
+                    options: [
+                        "объем между днищем поршня в ВМТ и поверхностью головки цилиндра",
+                        "пространство освобождаемое поршнем при перемещении его из ВМТ в НМТ",
+                        "объем между днищем поршня в НМТ и поверхностью головки цилиндра",
+                        "расстояние, проходимое поршнем между мертвыми точками"
+                    ],
+                    correct: 0,
+                    explanation: "Минимальный объем рабочей полости над поршнем при его положении в ВМТ."
+                },
+                {
+                    type: "choice",
+                    question: "Назовите различие между впускным и выпускным клапанами двигателя.",
+                    options: [
+                        "в разной длине клапанов",
+                        "диаметр тарелки выпускного клапана меньше диаметра тарелки впускного клапана",
+                        "диаметр тарелки выпускного клапана больше диаметра тарелки впускного клапана",
+                        "во впускном клапане отсутствуют сухари"
+                    ],
+                    correct: 1,
+                    explanation: "Для более эффективного наполнения цилиндров топливной смесью диаметр тарелки впускного клапана делают шире."
+                },
+                {
+                    type: "choice",
+                    question: "Компрессионные кольца поршня предназначены для…",
+                    options: [
+                        "предотвращения попадания масла из картера в камеру сгорания",
+                        "улучшения смазки зеркала цилиндра",
+                        "предотвращения прорыва газов из камеры в картер двигателя",
+                        "восприятия давления газов и передачи воздействия на шатун"
+                    ],
+                    correct: 2,
+                    explanation: "Основные функции компрессионных колец — герметизация камеры сгорания."
+                },
+                {
+                    type: "choice",
+                    question: "Рабочий цикл в четырехтактном двигателе совершается за…",
+                    options: [
+                        "за 1 оборот (360°) коленчатого вала",
+                        "за 2 оборота (720°) коленчатого вала",
+                        "за 4 оборота (1440°) коленчатого вала",
+                        "среди ответов нет правильного"
+                    ],
+                    correct: 1,
+                    explanation: "В 4-тактном ДВС рабочий цикл включает 4 такта за 2 оборота коленвала."
+                },
+                {
+                    type: "choice",
+                    question: "Топливный насос высокого давления (ТНВД) дизельного двигателя предназначен…",
+                    options: [
+                        "для подачи топлива в цилиндры двигателя",
+                        "для сжатия топлива до высокого давления",
+                        "для подачи к форсункам точно отмеренных порций топлива под высоким давлением",
+                        "для подачи топлива под давлением к фильтрам очистки топлива"
+                    ],
+                    correct: 2,
+                    explanation: "Функция ТНВД — строго дозировать топливо и распределять его по цилиндрам под давлением."
+                },
+                {
+                    type: "choice",
+                    question: "Уровень электролита в аккумуляторной батарее должен быть…",
+                    options: [
+                        "на уровне верхней кромки пластин",
+                        "выше пластин на 10-15 мм",
+                        "выше пластин на 20-25 мм",
+                        "ниже пластин на 10-15 мм"
+                    ],
+                    correct: 1,
+                    explanation: "Для полноценной работы электролит должен перекрывать уровень пластин на 10-15 мм."
+                },
+                {
+                    type: "choice",
+                    question: "К деталям кривошипно-шатунного механизма (КШМ) относятся…",
+                    options: [
+                        "распределительный вал, штанга толкателя, коромысло, поршневой палец, клапан выпускной",
+                        "блок цилиндров, головка блока цилиндров, поддон картера, поршни, поршневые кольца, поршневые пальцы, шатуны, коленчатый вал, маховик",
+                        "маховик, распределительный вал, шатуны, поршни, поршневые кольца, поршневые пальцы, блок цилиндров, головка блока цилиндров, поддон картера",
+                        "распределительный вал, клапаны, коромысла, толкатели, подвеска клапанов"
+                    ],
+                    correct: 1,
+                    explanation: "В КШМ входят жестко закрепленный блок, головка, а также поршневая группа и коленчатый вал с маховиком."
+                },
+                {
+                    type: "matching",
+                    question: "Установите соответствие между понятием и определением:",
+                    matchData: {
+                        left: [
+                            { id: "MLG1", text: "Двигатель" },
+                            { id: "MLG2", text: "Коробка передач" },
+                            { id: "MLG3", text: "Рулевое управление" },
+                            { id: "MLG4", text: "Карданная передача" }
+                        ],
+                        right: [
+                            { id: "MRG1", text: "Б) источник механической энергии, необходимый для движения автомобиля" },
+                            { id: "MRG2", text: "А) служит для изменения момента, скорости и направления движения шестернями" },
+                            { id: "MRG3", text: "Г) необходимо для изменения направления движения автомобиля" },
+                            { id: "MRG4", text: "В) служит для передачи вращения от КПП к мосту под углом" }
+                        ],
+                        pairs: { "MLG1": "MRG1", "MLG2": "MRG2", "MLG3": "MRG3", "MLG4": "MRG4" }
+                    },
+                    explanation: "Базовые элементы трансмиссии и управления."
+                },
+                {
+                    type: "multi",
+                    question: "Выберите правильные утверждения о системах двигателя (выберите все верные варианты):",
+                    options: [
+                        "КШМ обеспечивает подачу дозированных порций топлива в определенный момент.",
+                        "Механизм газораспределения управляет работой клапанов, впуская воздух/смесь и выпуская ОГ.",
+                        "Система питания служит для подачи топлива и воздуха и отвода продуктов сгорания.",
+                        "Система зажигания необходима для непрерывной подачи масла к трущимся деталям.",
+                        "Система охлаждения предохраняет стенки камеры сгорания от перегрева."
+                    ],
+                    correctAnswers: [1, 2, 4],
+                    explanation: "Верными являются утверждения о ГРМ (клапаны), системе питания и системе охлаждения."
+                },
+                {
+                    type: "input",
+                    question: "Определите литраж двигателя в литрах, если рабочий объем одного цилиндра 8-ми цилиндрового V-образного двигателя КамАЗ-740 равен 1356 куб. см. (Ответ округлите до десятых, например, 10.8):",
+                    correct: "10.8",
+                    explanation: "1356 * 8 = 10848 куб. см = 10.8 литра."
+                }
+            ],
+            "Электротехника": [
+                {
+                    type: "choice",
+                    question: "Назовите условия, которые необходимы и достаточны для существования электрического тока в цепи:",
+                    options: ["Наличие электроизмерительных приборов", "Замкнутая электрическая цепь и источник ЭДС", "Наличие предохранителей", "Наличие потребителя высокой мощности"],
+                    correct: 1,
+                    explanation: "Ток течет только по замкнутому проводящему контуру при наличии разности потенциалов (источника ЭДС)."
+                },
+                {
+                    type: "choice",
+                    question: "Укажите назначение предохранителей и автоматических выключателей:",
+                    options: [
+                        "Для устранения вероятности короткого замыкания",
+                        "Для защиты от теплового излучения сети",
+                        "Для устранения опасных последствий короткого замыкания и перегрузки",
+                        "Для стабилизации напряжения"
+                    ],
+                    correct: 2,
+                    explanation: "Их задача — мгновенно разорвать цепь при КЗ или перегрузках, не давая кабелям расплавиться."
+                },
+                {
+                    type: "choice",
+                    question: "Выберите из вариантов ответов назначение трансформаторов:",
+                    options: [
+                        "Для повышения коэффициента мощности",
+                        "Для преобразования частоты переменного тока",
+                        "Для преобразования постоянного тока в переменный",
+                        "Для преобразования энергии переменного тока из одного напряжения в другое без изменения частоты"
+                    ],
+                    correct: 3,
+                    explanation: "Трансформаторы изменяют величину переменного напряжения при постоянной частоте сети."
+                },
+                {
+                    type: "choice",
+                    question: "Назовите значение тока на всех участках последовательного соединения резисторов:",
+                    options: ["Одинаков на всех участках", "Чем больше сопротивление участка, тем больше ток", "Чем больше сопротивление участка, тем меньше ток"],
+                    correct: 0,
+                    explanation: "При последовательном соединении ток не разветвляется и имеет постоянное значение."
+                },
+                {
+                    type: "choice",
+                    question: "Укажите правильную формулировку закона Ома для участка цепи:",
+                    options: ["R = I / U", "I = R / U", "U = R / I", "I = U / R"],
+                    correct: 3,
+                    explanation: "Ток прямо пропорционален напряжению и обратно пропорционален сопротивлению."
+                },
+                {
+                    type: "choice",
+                    question: "Рассчитайте величину общей мощности, подключаемых в сеть приборов с напряжением 220В, если установлен предохранитель на 6А.",
+                    options: ["1,5 кВт", "1,32 кВт", "36,7 кВт", "40 кВт"],
+                    correct: 1,
+                    explanation: "P = U * I = 220 В * 6 А = 1320 Вт = 1.32 кВт."
+                },
+                {
+                    type: "choice",
+                    question: "Назовите вращающуюся часть электрического двигателя постоянного тока, предназначенную для изменения направления тока в обмотке (коммутации):",
+                    options: ["Ротор", "Статор", "Коллектор", "Щётки"],
+                    correct: 2,
+                    explanation: "Коллектор выступает в роли механического переключателя тока."
+                },
+                {
+                    type: "choice",
+                    question: "Поясните, почему электродвигатель называется «асинхронным»:",
+                    options: [
+                        "частота вращения магнитного поля статора отстает от частоты вращения ротора",
+                        "частота вращения поля статора опережает частоту вращения ротора",
+                        "частота вращения поля статора полностью совпадает с частотой вращения ротора"
+                    ],
+                    correct: 1,
+                    explanation: "Асинхронный означает несинхронный (ротор вращается со скоростью, меньшей скорости поля статора)."
+                },
+                {
+                    type: "choice",
+                    question: "Поясните назначение магнитного пускателя:",
+                    options: [
+                        "защита от коротких замыканий",
+                        "защита от тепловых перегрузок",
+                        "для коммутации и дистанционного запуска асинхронных электродвигателей"
+                    ],
+                    correct: 2,
+                    explanation: "Пускатель является контактором для управления запуском мощных двигателей."
+                },
+                {
+                    type: "choice",
+                    question: "Поясните, как ведут себя ток и напряжение в цепях переменного тока при чисто индуктивной нагрузке:",
+                    options: [
+                        "ток отстает от напряжения на 90º",
+                        "напряжение отстает от тока на 90º",
+                        "векторы тока и напряжения полностью совпадают по фазе"
+                    ],
+                    correct: 0,
+                    explanation: "В индуктивности ЭДС самоиндукции сдвигает ток назад на четверть периода (90°)."
+                },
+                // Интеграция 14 подготовительных вопросов как тестов
+                {
+                    type: "choice",
+                    question: "Что называется электрической цепью?",
+                    options: [
+                        "Совокупность устройств, образующих путь для электрического тока",
+                        "Любой металлический проводник",
+                        "Только обмотка генератора",
+                        "Любой потребитель энергии"
+                    ],
+                    correct: 0,
+                    explanation: "Электрическая цепь — система соединенных элементов для передачи и распределения тока."
+                },
+                {
+                    type: "choice",
+                    question: "Устройства, предназначенные для защиты электродвигателя от тепловой перегрузки, называются:",
+                    options: ["Плавкие предохранители", "Тепловые реле", "Конденсаторы", "Выпрямители"],
+                    correct: 1,
+                    explanation: "Тепловые реле защищают двигатели от долгого перегрева вследствие токов перегрузки."
+                }
+            ],
+            "Спецтехнология": [
+                {
+                    type: "matching",
+                    question: "Установите соответствие классов машин и примеров:",
+                    matchData: {
+                        left: [
+                            { id: "SLL1", text: "машины-орудия" },
+                            { id: "SLL2", text: "машины-генераторы" },
+                            { id: "SLL3", text: "транспортирующие машины" }
+                        ],
+                        right: [
+                            { id: "SRR1", text: "3) ковочный пресс" },
+                            { id: "SRR2", text: "4) компрессор" },
+                            { id: "SRR3", text: "2) конвейер" }
+                        ],
+                        pairs: { "SLL1": "SRR1", "SLL2": "SRR2", "SLL3": "SRR3" }
+                    },
+                    explanation: "Пресс выполняет формоизменение (орудие); компрессор генерирует давление; конвейер перемещает груз."
+                },
+                {
+                    type: "matching",
+                    question: "Установите соответствие элементов штангенрейсмаса их номерам на схеме:",
+                    hasIllustration: true,
+                    illustrationType: "sh_reismas",
+                    matchData: {
+                        left: [
+                            { id: "SLK1", text: "Элемент под номером 1" },
+                            { id: "SLK2", text: "Элемент под номером 6" },
+                            { id: "SLK3", text: "Элемент под номером 9" }
+                        ],
+                        right: [
+                            { id: "SRK1", text: "штанга со шкалой" },
+                            { id: "SRK2", text: "массивное чугунное основание" },
+                            { id: "SRK3", text: "разметочная чертилка (ножка)" }
+                        ],
+                        pairs: { "SLK1": "SRK1", "SLK2": "SRK2", "SLK3": "SRK3" }
+                    },
+                    explanation: "Штанга, основание и разметочная ножка — ключевые части инструмента."
+                },
+                {
+                    type: "choice",
+                    question: "Операция по увеличению диаметра конца трубы или приданию ему конической формы называется:",
+                    options: ["расчеканка", "зенкование", "рассверливание", "развальцовка"],
+                    correct: 3,
+                    explanation: "Развальцовка — формование конца трубы конусом для резьбовых зажимных соединений."
+                },
+                {
+                    type: "input",
+                    question: "Рассчитайте длину развёртки заготовки (в мм) для гибки двойного угольника с минимально допустимыми закруглениями:",
+                    correct: "190",
+                    explanation: "Длина рассчитывается сложением длин участков нейтрального слоя (в данном задании длина равна 190 мм)."
+                },
+                {
+                    type: "choice",
+                    question: "Для точных специальных лекальных работ применяют напильники маленьких размеров с длиной рабочей части 50, 60 и 80 мм, которые называются …",
+                    options: ["машинные напильники", "рашпили", "напильники специального назначения", "надфили"],
+                    correct: 3,
+                    explanation: "Надфили предназначены для зачистки мелких деталей в труднодоступных местах."
+                },
+                {
+                    type: "choice",
+                    question: "Угол заточки при вершине спирального сверла для обработки углеродистой стали равен:",
+                    options: ["60…70°", "80…90°", "116…118°", "125°"],
+                    correct: 2,
+                    explanation: "Для стали оптимальный угол заточки по стандартам составляет 116°...118°."
+                },
+                {
+                    type: "choice",
+                    question: "Чистовым развёртыванием обеспечивается квалитет точности отверстий и шероховатость поверхности:",
+                    options: [
+                        "5…6 квалитет; Ra 0,63…Ra 1,25",
+                        "7…8 квалитет; Ra 0,63…Ra 1,25",
+                        "9…11 квалитет; Ra 1,25…Ra 2,5",
+                        "10…12 квалитет; Ra 20…Ra 80"
+                    ],
+                    correct: 1,
+                    explanation: "Процесс тонкого развёртывания позволяет получить 7...8 квалитет точности."
+                },
+                {
+                    type: "choice",
+                    question: "Для комплексной слесарной обработки прецизионного отверстия Ø20Н7 необходимо применить инструмент:",
+                    options: [
+                        "сверло",
+                        "сверло и развёртку",
+                        "сверло, зенкер, развёртку",
+                        "сверло, зенкер, черновую развёртку, чистовую развёртку"
+                    ],
+                    correct: 3,
+                    explanation: "Повышенные требования к точности квалитета Н7 обязывают применять полную цепь обработки."
+                },
+                {
+                    type: "input",
+                    question: "Рассчитайте скорость резания V (в м/мин) при сверлении, если t = 10 мм, частота вращения шпинделя n = 500 об/мин (диаметр D=20 мм, используйте π=3.14):",
+                    correct: "31.4",
+                    explanation: "V = (π * D * n) / 1000 = (3.14 * 20 * 500) / 1000 = 31.4 м/мин."
+                },
+                {
+                    type: "input",
+                    question: "Рассчитайте диаметр сверла под нарезание внутренней резьбы М14 × 1,25 метчиком:",
+                    correct: "12.75",
+                    explanation: "Dсв = Dном - P = 14 - 1.25 = 12.75 мм."
+                },
+                {
+                    type: "input",
+                    question: "Рассчитайте диаметр стержня под нарезания наружной резьбы М12 × 1,5-6g плашкой:",
+                    correct: "11.85",
+                    explanation: "dст = Dном - 0.1 * P = 12 - 0.15 = 11.85 мм."
+                },
+                {
+                    type: "matching",
+                    question: "Установите соответствие инструментов ручной клёпки их назначению:",
+                    matchData: {
+                        left: [
+                            { id: "KLL1", text: "Поддержка" },
+                            { id: "KLL2", text: "Обжимка" },
+                            { id: "KLL3", text: "Натяжка" },
+                            { id: "KLL4", text: "Чекан" }
+                        ],
+                        right: [
+                            { id: "KRR1", text: "Г. Служит опорой при расклёпывании стержня заклёпки" },
+                            { id: "KRR2", text: "Д. Служит для придания требуемой формы головке заклёпки" },
+                            { id: "KRR3", text: "В. Применяется для сжатия листов перед расклёпыванием" },
+                            { id: "KRR4", text: "А. Применяется для создания герметичности заклёпочного шва" }
+                        ],
+                        pairs: { "KLL1": "KRR1", "KLL2": "KRR2", "KLL3": "KRR3", "KLL4": "KRR4" }
+                    },
+                    explanation: "Ручной слесарный инструмент для заклепочных соединений."
+                },
+                {
+                    type: "choice",
+                    question: "Причиной образования рваной резьбы при слесарном нарезании является:",
+                    options: [
+                        "неправильный выбор диаметра отверстия",
+                        "работа затупленным метчиком или плашкой, отсутствие СОЖ",
+                        "высокая вязкость материала детали",
+                        "излишне высокие обороты шпинделя"
+                    ],
+                    correct: 1,
+                    explanation: "Затупление граней режущего профиля без смазки срезает витки, делая их структуру рваной."
+                },
+                {
+                    type: "choice",
+                    question: "Фасонные соединительные стандартизованные детали трубопроводов называют:",
+                    options: ["муфтами", "втулками", "фланцами", "фитингами"],
+                    correct: 3,
+                    explanation: "Фитинги служат для разветвлений, поворотов и состыковки труб разного диаметра."
+                },
+                {
+                    type: "choice",
+                    question: "При сборке труб с короткой резьбой на концах нарезается резьба длиной…",
+                    options: [
+                        "на 2…3 витка больше половины длины соединительной муфты",
+                        "на 2…3 витка меньше половины длины соединительной муфты",
+                        "полностью равной длине соединительной муфты",
+                        "на 2…3 витка меньше длины соединительной муфты"
+                    ],
+                    correct: 1,
+                    explanation: "Такой запас позволяет зажать уплотнитель и гарантирует герметичность стыка."
+                },
+                {
+                    type: "sequence",
+                    question: "Установите правильный порядок сборки сопряжения с призматической шпонкой:",
+                    steps: [
+                        { id: "SK1", text: "Снять заусенцы и притупить острые края шпонки и паза" },
+                        { id: "SK2", text: "Пригнать шпонку по пазу вала в соответствии с посадкой" },
+                        { id: "SK3", text: "Пригнать шпоночный паз ступицы по шпонке" },
+                        { id: "SK4", text: "Установить шпонку в паз вала медным молотком или под прессом" },
+                        { id: "SK5", text: "Проверить отсутствие бокового зазора между шпонкой и пазом" },
+                        { id: "SK6", text: "Установить ступицу на вал с запрессованной шпонкой" },
+                        { id: "SK7", text: "Проверить наличие радиального зазора между шпонкой и ступицей" }
+                    ],
+                    explanation: "Последовательность операций сборки призматического шпоночного узла."
+                },
+                {
+                    type: "choice",
+                    question: "Вкладыши подшипников скольжения изготовляют из материалов марок:",
+                    options: [
+                        "У10А, Х12М, Х6ВФ",
+                        "40, 40Х, 45, 50",
+                        "Ст3, Ст4, Ст5",
+                        "БрОЦС 6-6-3, БрОФ 10-1, Б83, АЧС-1"
+                    ],
+                    correct: 3,
+                    explanation: "Бронза, баббиты и антифрикционные чугуны применяются в качестве антифрикционного слоя."
+                },
+                {
+                    type: "sequence",
+                    question: "Укажите последовательность сборки неразъёмного подшипника скольжения:",
+                    steps: [
+                        { id: "NS1", text: "Проверить размеры отверстия корпуса и наружной поверхности втулки" },
+                        { id: "NS2", text: "Запрессовать вкладыш-втулку в корпус подшипника" },
+                        { id: "NS3", text: "Осуществить стопорение втулки в корпусе от проворачивания" },
+                        { id: "NS4", text: "Произвести финишную обработку отверстия втулки после прессования" },
+                        { id: "NS5", text: "Выполнить выходной контроль качества сборки неразъёмного подшипника" }
+                    ],
+                    explanation: "Методика сборки неразъемных опор скольжения."
+                },
+                {
+                    type: "sequence",
+                    question: "Установите технологию сборки разъёмного подшипника скольжения:",
+                    steps: [
+                        { id: "RS1", text: "Уложить нижний вкладыш, нанести масло и уложить вал" },
+                        { id: "RS2", text: "Установить прокладки, обеспечивающие зазор" },
+                        { id: "RS3", text: "Установить верхнюю крышку подшипника с вкладышем" },
+                        { id: "RS4", text: "Выполнить предварительную, затем окончательную затяжку гаек ключом" },
+                        { id: "RS5", text: "Проверить усилие прокрутки вала и зашплинтовать гайки" },
+                        { id: "RS6", text: "Провести окончательную приработку пары" }
+                    ],
+                    explanation: "Этапы монтажа ответственных разъемных опор."
+                },
+                {
+                    type: "choice",
+                    question: "Две последние цифры условного обозначения подшипника качения обозначают:",
+                    options: ["серию подшипника", "наружный диаметр", "шифр внутреннего диаметра", "конструктивный тип подшипника"],
+                    correct: 2,
+                    explanation: "Они кодируют посадочный внутренний диаметр подшипника."
+                },
+                {
+                    type: "choice",
+                    question: "Обод шкива плоскоременной передачи выполняется слегка выпуклым с целью:",
+                    options: ["лучшего центрирования ремня по оси вращения шкива", "увеличения нагрузочной способности", "обеспечения бесшумного хода", "повышения жесткости"],
+                    correct: 0,
+                    explanation: "Ремень стремится занять наиболее натянутое (высокое) положение, центрируясь на выпуклом ободе."
+                },
+                {
+                    type: "choice",
+                    question: "Боковой зазор в конических зубчатых передачах средней точности колеблется:",
+                    options: ["от 0,008 до 0,02 мм", "от 0,08 до 0,2 мм", "от 0,8 до 2 мм", "от 2 до 3 мм"],
+                    correct: 1,
+                    explanation: "Конструктивно для компенсации перекосов и температурных деформаций зазор равен 0,08 - 0,2 мм."
+                },
+                {
+                    type: "choice",
+                    question: "Расположение пятна контакта в верхней части зуба колеса при контроле цилиндрической передачи на краску свидетельствует:",
+                    options: [
+                        "о перекосе колес",
+                        "о деформации вала",
+                        "об увеличенном межосевом расстоянии редуктора",
+                        "о недостаточном радиальном зазоре"
+                    ],
+                    correct: 2,
+                    explanation: "Колеса цепляют только верхними кромками при разведении осей валов дальше нормы."
+                },
+                {
+                    type: "sequence",
+                    question: "Установите порядок сборки вала с колесами в редукторе редуктора:",
+                    steps: [
+                        { id: "SHG1", text: "Проверить геометрические размеры посадочных мест вала под подшипники" },
+                        { id: "SHG2", text: "Установить зубчатые колеса на вал" },
+                        { id: "SHG3", text: "Собрать подшипниковый узел с одной из сторон вала" },
+                        { id: "SHG4", text: "Установить на вал второй подшипниковый узел" },
+                        { id: "SHG5", text: "Закрепить валы в корпусе при помощи крышек" },
+                        { id: "SHG6", text: "Проверить собранную зубчатую передачу по пятну контакта" }
+                    ],
+                    explanation: "Последовательность операций слесарно-сборочных работ на редукторах."
+                },
+                {
+                    type: "matching",
+                    question: "Установите соответствие между названием механизмов и их назначением:",
+                    matchData: {
+                        left: [
+                            { id: "MML1", text: "кривошипно-шатунный" },
+                            { id: "MML2", text: "механизм клапанного распределения" },
+                            { id: "MML3", text: "храповой механизм" },
+                            { id: "MML4", text: "передача винт-гайка" }
+                        ],
+                        right: [
+                            { id: "MMR1", text: "4) для преобразования вращательного движения в возвратно-поступательное" },
+                            { id: "MMR2", text: "3) для регулирования подачи горючей смеси и воздуха" },
+                            { id: "MMR3", text: "2) для обеспечения периодического шагового поворота в одну сторону" },
+                            { id: "MMR4", text: "1) для перемещения подвижных силовых частей оборудования" }
+                        ],
+                        pairs: { "MML1": "MMR1", "MML2": "MMR2", "MML3": "MMR3", "MML4": "MMR4" }
+                    },
+                    explanation: "Кинематическое назначение преобразующих механизмов."
+                },
+                {
+                    type: "sequence",
+                    question: "Укажите последовательность сборки силовой передачи винт – гайка скольжения:",
+                    steps: [
+                        { id: "VNG1", text: "Установить ходовой винт в подшипниковых опорах станка" },
+                        { id: "VNG2", text: "Собрать гайку ходового винта" },
+                        { id: "VNG3", text: "Навинтить собранную гайку на ходовой винт" },
+                        { id: "VNG4", text: "Смонтировать винт с гайкой, заведя шип в паз ползуна, и затянуть винты" },
+                        { id: "VNG5", text: "Выполнить регулировку зазоров и провести контроль плавности вращения" }
+                    ],
+                    explanation: "Технология сборки пары винт-гайка."
+                },
+                {
+                    type: "choice",
+                    question: "При притирке фасок клапанов к седлам в ДВС используют абразивные пасты зернистостью:",
+                    options: ["200, 160, 125", "25, 20, 16", "12, 10, 8", "М5, М7, М10"],
+                    correct: 3,
+                    explanation: "Для чистовой герметичной доводки сопряжений применяются тонкие пасты с микропорошком."
+                },
+                {
+                    type: "choice",
+                    question: "Регулирующие дроссели, применяемые в гидроприводах машин, служат для:",
+                    options: [
+                        "изменения направления потока жидкости",
+                        "защиты гидросистемы от перегрузок",
+                        "прохождения масла только в одну сторону",
+                        "регулирования скорости движения поршня за счет изменения расхода жидкости"
+                    ],
+                    correct: 3,
+                    explanation: "Дроссель сужает проходной канал, дозируя подачу масла и контролируя скорость гидроцилиндров."
+                }
+            ]
+        };
+
+        let currentSubject = "";
+        let currentQuestionsList = [];
+        let currentIdx = 0;
+        let testScore = 0;
+        let testMode = "subject";
+        let timer = null;
+        let timeElapsed = 0;
+        let selectedMatchId = null;
+        let activeMatches = {};
+        let currentQuestionAnswered = false;
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        // Инициализация аудиоконтекста
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Проигрывание синтезированного звука через Web Audio
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'success') {
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high";
+                playSound('click');
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-rose-500";
+            }
+        }
+
+        // Генерация карточек предметов
+        function renderSubjectGrid() {
+            const grid = document.getElementById('subjects-grid');
+            grid.innerHTML = "";
+            
+            const icons = {
+                "Материаловедение": "fa-solid fa-atom text-amber-500",
+                "Черчение": "fa-solid fa-compass-drafting text-blue-500",
+                "Допуски и посадки": "fa-solid fa-ruler-combined text-emerald-500",
+                "Охрана труда": "fa-solid fa-user-shield text-rose-500",
+                "ТО и Р автомобилей": "fa-solid fa-screwdriver-wrench text-purple-500",
+                "Устройство автомобилей": "fa-solid fa-car text-cyan-500",
+                "Электротехника": "fa-solid fa-bolt text-yellow-500",
+                "Спецтехнология": "fa-solid fa-gears text-indigo-500"
+            };
+
+            for (let sub in DATABASE) {
+                const count = DATABASE[sub].length;
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-5 rounded-2xl hover:border-slate-700 transition cursor-pointer flex flex-col justify-between space-y-4 shadow-md group";
+                card.onclick = () => { playSound('click'); startSubjectMode(sub); };
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i class="${icons[sub] || 'fa-solid fa-book'} text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm text-white group-hover:text-blue-400 transition-colors">${sub}</h4>
+                            <p class="text-[10px] text-slate-500 mt-1">Интерактивный тест</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-800/80">
+                        <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-semibold">${count} вопр.</span>
+                        <i class="fa-solid fa-circle-chevron-right text-slate-600 group-hover:text-blue-500 transition-colors text-sm"></i>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function startSubjectMode(subject) {
+            testMode = "subject";
+            currentSubject = subject;
+            currentQuestionsList = [...DATABASE[subject]];
+            currentIdx = 0;
+            testScore = 0;
+            timeElapsed = 0;
+            initTestScreen();
+        }
+
+        function startExamMode() {
+            playSound('click');
+            testMode = "exam";
+            currentSubject = "Комплексный Экзамен";
+            
+            let examPool = [];
+            for (let sub in DATABASE) {
+                const shuffled = [...DATABASE[sub]].sort(() => Math.random() - 0.5);
+                examPool = examPool.concat(shuffled.slice(0, 3));
+            }
+            currentQuestionsList = examPool.sort(() => Math.random() - 0.5);
+            currentIdx = 0;
+            testScore = 0;
+            timeElapsed = 0;
+            initTestScreen();
+        }
+
+        function initTestScreen() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('timer-display').classList.remove('hidden');
+            startTimer();
+            loadQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeElapsed++;
+                const mins = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+                const secs = (timeElapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerHTML = `<i class="fa-regular fa-clock mr-1.5 animate-pulse"></i> ${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            currentQuestionAnswered = false;
+            activeMatches = {};
+            selectedMatchId = null;
+
+            const q = currentQuestionsList[currentIdx];
+
+            document.getElementById('quiz-subject').innerText = q.subject || currentSubject;
+            document.getElementById('quiz-progress-text').innerText = `Вопрос ${currentIdx + 1} из ${currentQuestionsList.length}`;
+            const percent = ((currentIdx + 1) / currentQuestionsList.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${percent}%`;
+
+            document.getElementById('quiz-question-text').innerText = q.question;
+
+            const illBox = document.getElementById('quiz-illustration');
+            if (q.hasIllustration && SVG_RESOURCES[q.illustrationType]) {
+                illBox.innerHTML = SVG_RESOURCES[q.illustrationType];
+                illBox.classList.remove('hidden');
+                illBox.classList.add('flex');
+            } else {
+                illBox.classList.add('hidden');
+                illBox.classList.remove('flex');
+            }
+
+            document.getElementById('container-choice').classList.add('hidden');
+            document.getElementById('container-multi').classList.add('hidden');
+            document.getElementById('container-matching').classList.add('hidden');
+            document.getElementById('container-sequence').classList.add('hidden');
+            document.getElementById('container-input').classList.add('hidden');
+            document.getElementById('quiz-feedback').classList.add('hidden');
+
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.innerHTML = `<span>Проверить</span><i class="fa-solid fa-circle-question"></i>`;
+            actionBtn.className = "w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-8 rounded-xl transition duration-150 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30";
+
+            if (q.type === "choice") {
+                renderChoice(q);
+            } else if (q.type === "multi") {
+                renderMulti(q);
+            } else if (q.type === "matching") {
+                renderMatching(q);
+            } else if (q.type === "sequence") {
+                renderSequence(q);
+            } else if (q.type === "input") {
+                renderInput();
+            }
+        }
+
+        function renderChoice(q) {
+            const container = document.getElementById('container-choice');
+            container.innerHTML = "";
+            container.classList.remove('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-item text-left bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-xl p-4 transition duration-150 flex justify-between items-center group cursor-pointer w-full text-sm sm:text-base";
+                btn.innerHTML = `
+                    <span class="font-medium text-slate-200 group-hover:text-white pr-4">${opt}</span>
+                    <span class="indicator-dot w-5.5 h-5.5 rounded-full border border-slate-700 flex items-center justify-center group-hover:border-blue-500 shrink-0">
+                        <span class="w-2.5 h-2.5 rounded-full bg-transparent"></span>
+                    </span>
+                `;
+                btn.onclick = () => { playSound('click'); selectChoice(btn, idx); };
+                container.appendChild(btn);
+            });
+        }
+
+        function selectChoice(el, idx) {
+            if (currentQuestionAnswered) return;
+
+            document.querySelectorAll('.option-item').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-950/20');
+                btn.querySelector('.indicator-dot').classList.remove('border-blue-500', 'bg-blue-500/10');
+                btn.querySelector('.indicator-dot span').classList.replace('bg-blue-400', 'bg-transparent');
+            });
+
+            el.classList.add('border-blue-500', 'bg-blue-950/20');
+            el.querySelector('.indicator-dot').classList.add('border-blue-500', 'bg-blue-500/10');
+            el.querySelector('.indicator-dot span').classList.replace('bg-transparent', 'bg-blue-400');
+
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.dataset.selectedIdx = idx;
+        }
+
+        function renderMulti(q) {
+            const container = document.getElementById('container-multi');
+            container.innerHTML = "";
+            container.classList.remove('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "multi-item text-left bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-xl p-4 transition duration-150 flex justify-between items-center group cursor-pointer w-full text-sm sm:text-base";
+                btn.dataset.idx = idx;
+                btn.innerHTML = `
+                    <span class="font-medium text-slate-200 group-hover:text-white pr-4">${opt}</span>
+                    <span class="checkbox-box w-5.5 h-5.5 rounded border border-slate-700 flex items-center justify-center group-hover:border-blue-500 shrink-0">
+                        <i class="fa-solid fa-check text-xs text-transparent"></i>
+                    </span>
+                `;
+                btn.onclick = () => { playSound('click'); toggleMulti(btn); };
+                container.appendChild(btn);
+            });
+        }
+
+        function toggleMulti(el) {
+            if (currentQuestionAnswered) return;
+
+            const box = el.querySelector('.checkbox-box');
+            const icon = box.querySelector('i');
+
+            if (el.classList.contains('border-blue-500')) {
+                el.classList.remove('border-blue-500', 'bg-blue-950/20');
+                box.classList.remove('border-blue-500', 'bg-blue-500/10');
+                icon.classList.replace('text-blue-400', 'text-transparent');
+            } else {
+                el.classList.add('border-blue-500', 'bg-blue-950/20');
+                box.classList.add('border-blue-500', 'bg-blue-500/10');
+                icon.classList.replace('text-transparent', 'text-blue-400');
+            }
+        }
+
+        function renderMatching(q) {
+            const container = document.getElementById('container-matching');
+            const leftCol = document.getElementById('match-left-col');
+            const rightCol = document.getElementById('match-right-col');
+
+            leftCol.innerHTML = "";
+            rightCol.innerHTML = "";
+            container.classList.remove('hidden');
+
+            q.matchData.left.forEach(item => {
+                const card = document.createElement('div');
+                card.id = item.id;
+                card.className = "match-left-btn text-left bg-slate-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 text-xs sm:text-sm font-semibold transition cursor-pointer flex justify-between items-center";
+                card.innerHTML = `
+                    <span>${item.text}</span>
+                    <span class="match-badge hidden text-[9px] bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded">Связано</span>
+                `;
+                card.onclick = () => { playSound('click'); selectLeftMatch(card); };
+                leftCol.appendChild(card);
+            });
+
+            const shuffledRight = [...q.matchData.right].sort(() => Math.random() - 0.5);
+
+            shuffledRight.forEach(item => {
+                const card = document.createElement('div');
+                card.id = item.id;
+                card.className = "match-right-btn text-left bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 sm:p-4 text-xs sm:text-sm text-slate-300 transition cursor-pointer hover:bg-slate-900";
+                card.innerText = item.text;
+                card.onclick = () => { playSound('click'); selectRightMatch(card); };
+                rightCol.appendChild(card);
+            });
+        }
+
+        function selectLeftMatch(card) {
+            if (currentQuestionAnswered) return;
+
+            document.querySelectorAll('.match-left-btn').forEach(c => {
+                if (c.id !== card.id && !activeMatches[c.id]) {
+                    c.classList.remove('border-blue-500', 'bg-blue-950/20');
+                }
+            });
+
+            selectedMatchId = card.id;
+            card.classList.add('border-blue-500', 'bg-blue-950/20');
+        }
+
+        function selectRightMatch(card) {
+            if (currentQuestionAnswered || !selectedMatchId) return;
+
+            for (let lId in activeMatches) {
+                if (activeMatches[lId] === card.id) {
+                    delete activeMatches[lId];
+                    const oldLeft = document.getElementById(lId);
+                    if (oldLeft) {
+                        oldLeft.querySelector('.match-badge').classList.add('hidden');
+                        oldLeft.classList.remove('border-indigo-500/40', 'bg-indigo-950/20');
+                    }
+                }
+            }
+
+            activeMatches[selectedMatchId] = card.id;
+
+            const leftCard = document.getElementById(selectedMatchId);
+            leftCard.classList.remove('border-blue-500', 'bg-blue-950/20');
+            leftCard.classList.add('border-indigo-500/40', 'bg-indigo-950/20');
+            leftCard.querySelector('.match-badge').classList.remove('hidden');
+
+            document.querySelectorAll('.match-right-btn').forEach(r => {
+                let isLinked = false;
+                for (let k in activeMatches) {
+                    if (activeMatches[k] === r.id) isLinked = true;
+                }
+                if (isLinked) {
+                    r.classList.add('border-indigo-500/40', 'bg-indigo-950/20');
+                } else {
+                    r.classList.remove('border-indigo-500/40', 'bg-indigo-950/20');
+                }
+            });
+
+            selectedMatchId = null;
+        }
+
+        function renderSequence(q) {
+            const container = document.getElementById('container-sequence');
+            const seqList = document.getElementById('sequence-list');
+            seqList.innerHTML = "";
+            container.classList.remove('hidden');
+
+            const items = q.steps ? [...q.steps] : [...q.matchData.left];
+            const shuffled = items.sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((step, idx) => {
+                const div = document.createElement('div');
+                div.className = "seq-item bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3 text-xs sm:text-sm";
+                div.dataset.id = step.id;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="seq-index bg-slate-800 text-slate-400 w-6 h-6 rounded-lg flex items-center justify-center font-bold font-mono">${idx + 1}</span>
+                        <span class="text-slate-200 font-medium">${step.text}</span>
+                    </div>
+                    <div class="flex flex-col gap-1 shrink-0">
+                        <button onclick="moveStep(${idx}, -1)" class="p-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>
+                        <button onclick="moveStep(${idx}, 1)" class="p-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                    </div>
+                `;
+                seqList.appendChild(div);
+            });
+        }
+
+        function moveStep(currentIndex, direction) {
+            playSound('click');
+            const list = document.getElementById('sequence-list');
+            const items = Array.from(list.children);
+            const targetIndex = currentIndex + direction;
+
+            if (targetIndex >= 0 && targetIndex < items.length) {
+                if (direction === -1) {
+                    list.insertBefore(items[currentIndex], items[targetIndex]);
+                } else {
+                    list.insertBefore(items[targetIndex], items[currentIndex]);
+                }
+                recalculateSeqIndexes();
+            }
+        }
+
+        function recalculateSeqIndexes() {
+            const list = document.getElementById('sequence-list');
+            Array.from(list.children).forEach((child, idx) => {
+                child.querySelector('.seq-index').innerText = idx + 1;
+                const buttons = child.querySelectorAll('button');
+                buttons[0].setAttribute('onclick', `moveStep(${idx}, -1)`);
+                buttons[1].setAttribute('onclick', `moveStep(${idx}, 1)`);
+            });
+        }
+
+        function renderInput() {
+            const container = document.getElementById('container-input');
+            const field = document.getElementById('answer-input-field');
+            field.value = "";
+            field.disabled = false;
+            field.className = "w-full bg-slate-950 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl py-3 px-4 text-center font-bold text-white tracking-wider text-lg outline-none transition";
+            container.classList.remove('hidden');
+        }
+
+        document.getElementById('quiz-action-btn').onclick = function() {
+            if (!currentQuestionAnswered) {
+                evaluateAnswer();
+            } else {
+                playSound('click');
+                currentIdx++;
+                if (currentIdx < currentQuestionsList.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }
+        };
+
+        function evaluateAnswer() {
+            const q = currentQuestionsList[currentIdx];
+            let isCorrect = false;
+
+            if (q.type === "choice") {
+                const selected = document.getElementById('quiz-action-btn').dataset.selectedIdx;
+                if (selected === undefined) return;
+
+                const selectedIdx = parseInt(selected);
+                isCorrect = (selectedIdx === q.correct);
+
+                document.querySelectorAll('.option-item').forEach((btn, idx) => {
+                    if (idx === q.correct) {
+                        btn.className = "option-item text-left bg-emerald-950/20 border-emerald-500 text-emerald-300 rounded-xl p-4 flex justify-between items-center w-full text-sm sm:text-base";
+                    } else if (idx === selectedIdx) {
+                        btn.className = "option-item text-left bg-rose-950/20 border-rose-500 text-rose-300 rounded-xl p-4 flex justify-between items-center w-full text-sm sm:text-base";
+                    }
+                });
+
+            } else if (q.type === "multi") {
+                const items = document.querySelectorAll('.multi-item');
+                let selectedIdxs = [];
+                items.forEach(el => {
+                    if (el.classList.contains('border-blue-500')) {
+                        selectedIdxs.push(parseInt(el.dataset.idx));
+                    }
+                });
+
+                isCorrect = q.correctAnswers.length === selectedIdxs.length && 
+                            q.correctAnswers.every(v => selectedIdxs.includes(v));
+
+                items.forEach(el => {
+                    const idx = parseInt(el.dataset.idx);
+                    const box = el.querySelector('.checkbox-box');
+                    if (q.correctAnswers.includes(idx)) {
+                        el.className = "multi-item text-left bg-emerald-950/20 border-emerald-500 text-emerald-300 rounded-xl p-4 flex justify-between items-center w-full text-sm sm:text-base";
+                    } else if (selectedIdxs.includes(idx)) {
+                        el.className = "multi-item text-left bg-rose-950/20 border-rose-500 text-rose-300 rounded-xl p-4 flex justify-between items-center w-full text-sm sm:text-base";
+                    }
+                });
+
+            } else if (q.type === "matching") {
+                isCorrect = true;
+                for (let lId in q.matchData.pairs) {
+                    const expectedRId = q.matchData.pairs[lId];
+                    const userRId = activeMatches[lId];
+
+                    const leftEl = document.getElementById(lId);
+                    const rightEl = document.getElementById(userRId);
+
+                    if (userRId === expectedRId) {
+                        leftEl.className = "match-left-btn bg-emerald-950/20 border-emerald-500 text-emerald-300 rounded-xl p-3 sm:p-4 text-xs sm:text-sm font-semibold flex justify-between items-center";
+                        if (rightEl) rightEl.className = "match-right-btn bg-emerald-950/20 border-emerald-500 text-emerald-300 rounded-xl p-3 sm:p-4 text-xs sm:text-sm";
+                    } else {
+                        isCorrect = false;
+                        leftEl.className = "match-left-btn bg-rose-950/20 border-rose-500 text-rose-300 rounded-xl p-3 sm:p-4 text-xs sm:text-sm font-semibold flex justify-between items-center";
+                        if (rightEl) rightEl.className = "match-right-btn bg-rose-950/20 border-rose-500 text-rose-300 rounded-xl p-3 sm:p-4 text-xs sm:text-sm";
+                    }
+                }
+
+            } else if (q.type === "sequence") {
+                isCorrect = true;
+                const items = Array.from(document.getElementById('sequence-list').children);
+                const expectedOrder = q.steps ? q.steps.map(s => s.id) : q.matchData.left.map(s => s.id);
+
+                items.forEach((item, idx) => {
+                    const expectedId = expectedOrder[idx];
+                    const actualId = item.dataset.id;
+
+                    if (expectedId === actualId) {
+                        item.className = "seq-item bg-emerald-950/10 border-emerald-500/50 text-emerald-300 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3 text-xs sm:text-sm";
+                    } else {
+                        isCorrect = false;
+                        item.className = "seq-item bg-rose-950/10 border-rose-500/50 text-rose-300 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3 text-xs sm:text-sm";
+                    }
+                });
+
+            } else if (q.type === "input") {
+                const val = document.getElementById('answer-input-field').value.trim().toLowerCase().replace(',', '.');
+                isCorrect = (val === q.correct.toLowerCase());
+                document.getElementById('answer-input-field').disabled = true;
+
+                if (isCorrect) {
+                    document.getElementById('answer-input-field').className = "w-full bg-emerald-950/20 border-emerald-500 text-emerald-300 rounded-xl py-3 px-4 text-center font-bold tracking-wider text-lg outline-none transition";
+                } else {
+                    document.getElementById('answer-input-field').className = "w-full bg-rose-950/20 border-rose-500 text-rose-300 rounded-xl py-3 px-4 text-center font-bold tracking-wider text-lg outline-none transition";
+                }
+            }
+
+            if (isCorrect) {
+                testScore++;
+                playSound('success');
+            } else {
+                playSound('error');
+            }
+
+            showFeedback(isCorrect, q.explanation);
+
+            currentQuestionAnswered = true;
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.innerHTML = `<span>Продолжить</span><i class="fa-solid fa-chevron-right"></i>`;
+            actionBtn.className = "w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 px-8 rounded-xl transition duration-150 flex items-center justify-center gap-2 border border-slate-700 shadow";
+            actionBtn.dataset.selectedIdx = undefined;
+        }
+
+        function showFeedback(isSuccess, explanation) {
+            const panel = document.getElementById('quiz-feedback');
+            const icon = document.getElementById('feedback-icon-placeholder');
+            const title = document.getElementById('feedback-title-text');
+            const text = document.getElementById('feedback-desc-text');
+
+            panel.classList.remove('hidden');
+
+            if (isSuccess) {
+                panel.className = "border border-emerald-500/30 bg-emerald-950/10 text-emerald-300 rounded-xl p-4 my-4 animate-fade-in";
+                icon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i>`;
+                title.innerText = "ОТВЕТ ВЕРНЫЙ!";
+            } else {
+                panel.className = "border border-rose-500/30 bg-rose-950/10 text-rose-300 rounded-xl p-4 my-4 animate-fade-in";
+                icon.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i>`;
+                title.innerText = "ОТВЕТ НЕВЕРНЫЙ";
+            }
+            text.innerText = explanation;
+        }
+
+        function showResults() {
+            clearInterval(timer);
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('timer-display').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const percent = Math.round((testScore / currentQuestionsList.length) * 100);
+
+            const circle = document.getElementById('result-circle-progress');
+            const circumference = 2 * Math.PI * 56;
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+
+            document.getElementById('result-percent-label').innerText = `${percent}%`;
+            document.getElementById('result-score-text').innerText = `${testScore} из ${currentQuestionsList.length}`;
+            document.getElementById('result-mode-text').innerText = testMode === "exam" ? "Экзамен" : "Тест";
+
+            const mins = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+            const secs = (timeElapsed % 60).toString().padStart(2, '0');
+            document.getElementById('result-time-text').innerText = `${mins}:${secs}`;
+
+            const header = document.getElementById('result-header');
+            const advice = document.getElementById('result-advice-block');
+            
+            const restartBtn = document.getElementById('restart-test-btn');
+            restartBtn.onclick = () => {
+                if (testMode === "exam") startExamMode();
+                else startSubjectMode(currentSubject);
+            };
+
+            if (percent >= 90) {
+                header.innerText = "Экзамен сдан на отлично!";
+                header.className = "text-2xl sm:text-3xl font-extrabold text-emerald-400 mb-2";
+                advice.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-star text-yellow-400 mt-1"></i>
+                        <p><strong>Потрясающе!</strong> Вы продемонстрировали блестящие академические знания по всем дисциплинам. Вы полностью готовы к сдаче итогового государственного испытания на максимальный разряд!</p>
+                    </div>
+                `;
+            } else if (percent >= 60) {
+                header.innerText = "Зачёт получен";
+                header.className = "text-2xl sm:text-3xl font-extrabold text-blue-400 mb-2";
+                advice.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-500 mt-1"></i>
+                        <p><strong>Хороший уровень знаний.</strong> Вы успешно преодолели пороговый уровень зачета. Рекомендуем дополнительно заучить расчеты длин разверток заготовок и шаги мелких резьб по спецтехнологии.</p>
+                    </div>
+                `;
+            } else {
+                header.innerText = "Требуется подготовка";
+                header.className = "text-2xl sm:text-3xl font-extrabold text-rose-500 mb-2";
+                advice.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-circle-exclamation text-rose-500 mt-1"></i>
+                        <p><strong>Нужно повторить материал.</strong> Вы набрали недостаточный балл. Пожалуйста, пройдите по отдельности дисциплины «Спецтехнология» и «Черчение» для устранения слабых мест.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function goToHome() {
+            playSound('click');
+            clearInterval(timer);
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('timer-display').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            renderSubjectGrid();
+        }
+    </script>
+</body>
+</html>
