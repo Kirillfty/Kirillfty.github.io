@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kirill Fty — Full-Stack Developer</title>
+
+    <!-- Material Icons & Google Font (Roboto) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <style>
+        /* ----- reset & base ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #111318;
+            color: #e3e3e3;
+            line-height: 1.6;
+        }
+
+        /* ----- Material 3 dark color tokens ----- */
+        :root {
+            --md-sys-color-primary: #8fc9ff;
+            --md-sys-color-on-primary: #00345e;
+            --md-sys-color-primary-container: #004d7c;
+            --md-sys-color-on-primary-container: #cfe6ff;
+            --md-sys-color-secondary: #b9c5d6;
+            --md-sys-color-on-secondary: #232f3d;
+            --md-sys-color-surface: #111318;
+            --md-sys-color-on-surface: #e3e3e3;
+            --md-sys-color-surface-variant: #3f434b;
+            --md-sys-color-on-surface-variant: #c2c6cf;
+            --md-sys-color-outline: #8b9099;
+            --md-sys-color-shadow: #00000080;
+            --md-sys-color-surface-container: #1d1f24;
+            --md-sys-color-surface-container-high: #282a30;
+            --md-sys-color-surface-container-highest: #34363c;
+            --md-sys-color-surface-container-low: #181a1f;
+        }
+
+        /* ----- container ----- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ----- header / hero ----- */
+        .hero {
+            padding: 80px 0 64px;
+            background: var(--md-sys-color-surface);
+            border-bottom: 1px solid var(--md-sys-color-surface-container-high);
+        }
+
+        .hero-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .hero-text {
+            flex: 1 1 300px;
+        }
+
+        .hero-text .badge {
+            display: inline-block;
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 4px 16px;
+            border-radius: 100px;
+            margin-bottom: 16px;
+            letter-spacing: 0.3px;
+        }
+
+        .hero-text h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .hero-text h1 span {
+            color: var(--md-sys-color-primary);
+        }
+
+        .hero-text .subhead {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 24px;
+        }
+
+        .hero-text .stack-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .chip {
+            background: var(--md-sys-color-surface-container-high);
+            padding: 6px 18px;
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface-variant);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        .chip .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            padding: 12px 32px;
+            border-radius: 100px;
+            font-weight: 500;
+            text-decoration: none;
+            font-size: 1rem;
+            box-shadow: 0 2px 8px var(--md-sys-color-shadow);
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #a8d4ff;
+            box-shadow: 0 4px 20px var(--md-sys-color-shadow);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            color: var(--md-sys-color-primary);
+            padding: 12px 32px;
+            border-radius: 100px;
+            font-weight: 500;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid var(--md-sys-color-outline);
+            transition: background 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: var(--md-sys-color-surface-container-high);
+        }
+
+        .hero-avatar {
+            flex: 0 0 180px;
+            text-align: center;
+        }
+
+        .hero-avatar .avatar {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+            font-weight: 500;
+            margin: 0 auto;
+            box-shadow: 0 4px 24px var(--md-sys-color-shadow);
+        }
+
+        .hero-avatar .handle {
+            margin-top: 12px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* ----- section common ----- */
+        section {
+            padding: 64px 0;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .section-sub {
+            font-size: 1rem;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 32px;
+        }
+
+        /* ----- stats / metrics ----- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-top: 8px;
+        }
+
+        .stat-card {
+            background: var(--md-sys-color-surface-container);
+            padding: 24px 20px;
+            border-radius: 16px;
+            box-shadow: 0 1px 4px var(--md-sys-color-shadow);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
+            line-height: 1.2;
+        }
+
+        .stat-card .label {
+            font-size: 0.95rem;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-top: 4px;
+        }
+
+        /* ----- project cards (M3 card) ----- */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .project-card {
+            background: var(--md-sys-color-surface-container);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 4px var(--md-sys-color-shadow);
+            transition: box-shadow 0.25s, transform 0.15s;
+            border: 1px solid transparent;
+        }
+
+        .project-card:hover {
+            box-shadow: 0 8px 32px var(--md-sys-color-shadow);
+            transform: translateY(-4px);
+            border-color: var(--md-sys-color-outline);
+        }
+
+        .project-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .project-card .card-header h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .project-card .card-header .lang-tag {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            padding: 2px 14px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .project-card .description {
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            min-height: 48px;
+        }
+
+        .project-card .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            font-size: 0.85rem;
+            color: var(--md-sys-color-on-surface-variant);
+            border-top: 1px solid var(--md-sys-color-surface-container-highest);
+            padding-top: 14px;
+            margin-top: 4px;
+        }
+
+        .project-card .meta .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        .project-card .meta a {
+            color: var(--md-sys-color-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .project-card .meta a:hover {
+            text-decoration: underline;
+        }
+
+        /* ----- footer ----- */
+        .footer {
+            border-top: 1px solid var(--md-sys-color-surface-container-high);
+            padding: 32px 0;
+            text-align: center;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 0.95rem;
+        }
+
+        .footer .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 12px;
+        }
+
+        .footer .social-links a {
+            color: var(--md-sys-color-on-surface-variant);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer .social-links a:hover {
+            color: var(--md-sys-color-primary);
+        }
+
+        /* ----- responsive tweaks ----- */
+        @media (max-width: 700px) {
+            .hero {
+                padding: 48px 0 32px;
+            }
+            .hero-text h1 {
+                font-size: 2.4rem;
+            }
+            .hero-avatar .avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 3.2rem;
+            }
+            .hero-avatar {
+                flex-basis: 100%;
+            }
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-text .stack-chips .chip {
+                font-size: 0.8rem;
+            }
+            .btn-primary,
+            .btn-outline {
+                width: 100%;
+                justify-content: center;
+            }
+            .hero-content {
+                gap: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== HERO ===== -->
+    <header class="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <div class="badge">✦ Open to opportunities</div>
+                <h1>Kirill <span>Fty</span></h1>
+                <p class="subhead">Full‑Stack Developer · .NET + Vue</p>
+
+                <div class="stack-chips">
+                    <span class="chip"><span class="material-icons">code</span> C# / .NET</span>
+                    <span class="chip"><span class="material-icons">web</span> Vue.js</span>
+                    <span class="chip"><span class="material-icons">storage</span> PostgreSQL</span>
+                    <span class="chip"><span class="material-icons">docker</span> Docker</span>
+                    <span class="chip"><span class="material-icons">api</span> REST API</span>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    <a href="#projects" class="btn-primary">
+                        <span class="material-icons">folder_open</span> Projects
+                    </a>
+                    <a href="https://github.com/kirillfty" target="_blank" class="btn-outline">
+                        <span class="material-icons">open_in_new</span> GitHub
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-avatar">
+                <div class="avatar">KF</div>
+                <div class="handle">@kirillfty</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== STATS ===== -->
+    <section style="padding-top: 32px; padding-bottom: 16px;">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">121</div>
+                    <div class="label">contributions last year</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">8</div>
+                    <div class="label">public repositories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">.NET</div>
+                    <div class="label">primary back-end stack</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">Vue</div>
+                    <div class="label">primary front-end stack</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PROJECTS ===== -->
+    <section id="projects">
+        <div class="container">
+            <h2 class="section-title">Featured projects</h2>
+            <p class="section-sub">Based on my GitHub activity — full‑stack apps with .NET &amp; Vue</p>
+
+            <div class="project-grid">
+
+                <!-- ByteSchoolManager -->
+                <div class="project-card">
+                    <div class="card-header">
+                        <h3>ByteSchoolManager</h3>
+                        <span class="lang-tag">C# / Vue</span>
+                    </div>
+                    <div class="description">
+                        Educational platform management system. Backend with .NET, frontend with Vue &amp; TypeScript.
+                    </div>
+                    <div class="meta">
+                        <span><span class="material-icons">update</span> updated Jan 2026</span>
+                        <span><span class="material-icons">commit</span> 81 commits</span>
+                        <a href="https://github.com/Kirillfty/ByteSchoolManager" target="_blank">→ repo</a>
+                    </div>
+                </div>
+
+                <!-- web-project -->
+                <div class="project-card">
+                    <div class="card-header">
+                        <h3>web-project</h3>
+                        <span class="lang-tag">C# / Vue</span>
+                    </div>
+                    <div class="description">
+                        My first server + client app with Docker — full‑stack .NET Web API and Vue SPA.
+                    </div>
+                    <div class="meta">
+                        <span><span class="material-icons">update</span> updated Oct 2025</span>
+                        <span><span class="material-icons">commit</span> 46 commits</span>
+                        <a href="https://github.com/Kirillfty/web-project" target="_blank">→ repo</a>
+                    </div>
+                </div>
+
+                <!-- club-back-end -->
+                <div class="project-card">
+                    <div class="card-header">
+                        <h3>club-back-end</h3>
+                        <span class="lang-tag">C#</span>
+                    </div>
+                    <div class="description">
+                        Backend for a clubs management system. Built with .NET, includes tests and MediatR.
+                    </div>
+                    <div class="meta">
+                        <span><span class="material-icons">update</span> updated Mar 2025</span>
+                        <span><span class="material-icons">commit</span> 20 commits</span>
+                        <a href="https://github.com/Kirillfty/club-back-end" target="_blank">→ repo</a>
+                    </div>
+                </div>
+
+                <!-- clubs-front-end -->
+                <div class="project-card">
+                    <div class="card-header">
+                        <h3>clubs-front-end</h3>
+                        <span class="lang-tag">Vue</span>
+                    </div>
+                    <div class="description">
+                        Frontend for clubs management — Vue SPA with CSS, JavaScript and Docker support.
+                    </div>
+                    <div class="meta">
+                        <span><span class="material-icons">update</span> updated Mar 2025</span>
+                        <span><span class="material-icons">commit</span> 20 commits</span>
+                        <a href="https://github.com/Kirillfty/clubs-front-end" target="_blank">→ repo</a>
+                    </div>
+                </div>
+
+                <!-- ROBO_race_first_code -->
+                <div class="project-card">
+                    <div class="card-header">
+                        <h3>ROBO_race_first_code</h3>
+                        <span class="lang-tag">C++</span>
+                    </div>
+                    <div class="description">
+                        My first robot code for a Robo Race competition — embedded logic in C++.
+                    </div>
+                    <div class="meta">
+                        <span><span class="material-icons">update</span> older</span>
+                        <span><span class="material-icons">commit</span> –</span>
+                        <a href="https://github.com/Kirillfty/ROBO_race_first_code" target="_blank">→ repo</a>
+                    </div>
+                </div>
+
+                <!-- Kirillfty.github.io -->
+                <div class="project-card">
+                    <div class="card-header">
+                        <h3>kirillfty.github.io</h3>
+                        <span class="lang-tag">HTML</span>
+                    </div>
+                    <div class="description">
+                        Personal GitHub Pages site — static HTML entry point.
+                    </div>
+                    <div class="meta">
+                        <span><span class="material-icons">update</span> –</span>
+                        <span><span class="material-icons">commit</span> –</span>
+                        <a href="https://github.com/Kirillfty/Kirillfty.github.io" target="_blank">→ repo</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="https://github.com/kirillfty" target="_blank">
+                    <span class="material-icons">code</span> GitHub
+                </a>
+                <a href="mailto:kirillfty@example.com">
+                    <span class="material-icons">email</span> Email
+                </a>
+            </div>
+            <p style="margin-top: 8px;">
+                &copy; 2026 Kirill Fty · Built with <span style="color:var(--md-sys-color-primary);">●</span> Material 3 Dark
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
