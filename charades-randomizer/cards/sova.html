@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Animal Oracle</title>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: radial-gradient(circle at top, #1b1b2e, #0b0b12);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#app {
+    text-align: center;
+    width: 100%;
+}
+
+h1 {
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.card {
+    width: 120px;
+    height: 160px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(145deg,#2a2a3d,#14141f);
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    transition: transform .4s;
+}
+
+.card.flip {
+    transform: rotateY(360deg) scale(1.05);
+}
+
+.card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    background: #7c5cff;
+    color: white;
+}
+
+.result {
+    margin-top: 20px;
+    max-width: 600px;
+    margin-left:auto;
+    margin-right:auto;
+    line-height: 1.4;
+    font-size: 15px;
+    opacity: 0.95;
+}
+</style>
+</head>
+
+<body>
+<div id="app">
+
+<h1>🔮 Animal Oracle</h1>
+
+<button @click="draw">Вытянуть 3 карты</button>
+
+<div class="cards">
+    <div class="card" v-for="(c,i) in currentCards" :key="i" :class="{flip: anim}">
+        <img :src="c" />
+    </div>
+</div>
+
+<div class="result" v-if="story">
+{{ story }}
+</div>
+
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+data() {
+    return {
+        cards: [
+            "card_1.png","card_2.png","card_3.png","card_4.png",
+            "card_5.png","card_6.png","card_7.png","card_8.png",
+            "card_9.png","card_10.png","card_11.png","card_12.png"
+        ],
+        currentCards: [],
+        anim: false,
+        story: ""
+    }
+},
+
+methods: {
+    draw() {
+        const pool = [...this.cards].sort(() => Math.random() - 0.5);
+        this.currentCards = pool.slice(0, 3);
+
+        this.anim = true;
+
+        setTimeout(() => {
+            this.anim = false;
+            this.story = this.generateStory(this.currentCards);
+        }, 600);
+    },
+
+    generateStory(cards) {
+        const [a, b, c] = cards;
+
+        const templates = [
+`Сначала энергия ${a} — это про твою текущую ситуацию.
+Потом влияние ${b} меняет направление.
+И итог — ${c}, который показывает развитие.`,
+
+`Карты:
+${a} — интуиция.
+${b} — влияние извне.
+${c} — результат будет благоприятным.`,
+
+`Прошлое: ${a}
+Настоящее: ${b}
+Будущее: ${c}
+
+Ты движешься правильно.`,
+
+`Энергия:
+${a} — внутренняя чувствительность.
+${b} — нестабильность.
+${c} — гармония впереди.`
+        ];
+
+        return templates[Math.floor(Math.random() * templates.length)];
+    }
+}
+}).mount("#app");
+</script>
+
+</body>
+</html>
